@@ -122,6 +122,7 @@ export default function TrendingPage() {
   <a href="/trending" className="font-medium text-sm uppercase tracking-wider transition-colors" style={{ color: GREEN }}>Trending</a>
   <a href="/new-releases" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">New Releases</a>
   <a href="/creators" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Creators</a>
+  <a href="/games" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">All Games</a>
 </div>
         <a href="/" style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, textDecoration: "none" }}>← Back to Home</a>
       </nav>
