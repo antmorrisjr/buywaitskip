@@ -427,9 +427,10 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
             gap: 20px !important;
           }
           .game-cover {
-            width: 100% !important;
-            height: 260px !important;
+            width: 160px !important;
+            height: 213px !important;
             border-radius: 12px !important;
+            margin: 0 auto !important;
           }
           .game-title {
             font-size: 28px !important;
