@@ -58,10 +58,10 @@ function timeAgo(dateStr: string) {
   const days = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
   if (days === 0) return "Today";
   if (days === 1) return "Yesterday";
-  if (days < 7) return `${days} days ago`;
-  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-  if (days < 365) return `${Math.floor(days / 30)} months ago`;
-  return `${Math.floor(days / 365)} years ago`;
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
 }
 
 export default function NewReleasesPage() {
@@ -131,12 +131,12 @@ export default function NewReleasesPage() {
           <span className="text-xl font-bold tracking-widest text-white">BUYWAITSKIP</span>
         </a>
         <div className="hidden md:flex items-center gap-8">
-  <a href="/" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Home</a>
-  <a href="/trending" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Trending</a>
-  <a href="/new-releases" className="font-medium text-sm uppercase tracking-wider transition-colors" style={{ color: GREEN }}>New Releases</a>
-  <a href="/creators" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Creators</a>
-  <a href="/games" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">All Games</a>
-</div>
+          <a href="/" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Home</a>
+          <a href="/trending" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Trending</a>
+          <a href="/new-releases" className="font-medium text-sm uppercase tracking-wider transition-colors" style={{ color: GREEN }}>New Releases</a>
+          <a href="/creators" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Creators</a>
+          <a href="/games" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">All Games</a>
+        </div>
         <a href="/" style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, textDecoration: "none" }}>← Back to Home</a>
       </nav>
 
@@ -153,13 +153,14 @@ export default function NewReleasesPage() {
             <p style={{ color: "rgba(255,255,255,0.4)" }}>Loading...</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
+          <div className="games-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
             {games.map((game) => {
               const image = steamHeroImages[game.slug] || game.cover_url;
               const verdict = getVerdict(game);
               return (
                 <a key={game.id} href={`/game/${game.slug}`} style={{ textDecoration: "none" }}>
                   <div
+                    className="game-card"
                     style={{
                       position: "relative",
                       borderRadius: 12,
@@ -187,21 +188,21 @@ export default function NewReleasesPage() {
                     )}
 
                     {/* Gradient overlay */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,10,18,0.97) 0%, rgba(10,10,18,0.4) 50%, transparent 100%)" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,10,18,0.97) 0%, rgba(10,10,18,0.3) 55%, transparent 100%)" }} />
 
                     {/* Time ago badge */}
-                    <div style={{
-                      position: "absolute", top: 10, right: 10, zIndex: 3,
-                      fontSize: 10, fontWeight: "bold", color: "rgba(255,255,255,0.6)",
-                      backgroundColor: "rgba(0,0,0,0.7)",
+                    <div className="time-badge" style={{
+                      position: "absolute", top: 8, right: 8, zIndex: 3,
+                      fontSize: 10, fontWeight: "bold", color: "rgba(255,255,255,0.7)",
+                      backgroundColor: "rgba(0,0,0,0.75)",
                       border: "1px solid rgba(255,255,255,0.15)",
-                      padding: "3px 8px", borderRadius: 20,
+                      padding: "2px 7px", borderRadius: 20,
                     }}>
                       {timeAgo(game.release_date)}
                     </div>
 
                     {/* Bottom content */}
-                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 14 }}>
+                    <div className="card-content" style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 14 }}>
                       {/* Verdict badge */}
                       <div style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
@@ -209,21 +210,21 @@ export default function NewReleasesPage() {
                         textTransform: "uppercase", color: verdict.color,
                         background: `${verdict.color}18`,
                         border: `1px solid ${verdict.color}44`,
-                        padding: "3px 8px", borderRadius: 4, marginBottom: 8
+                        padding: "3px 8px", borderRadius: 4, marginBottom: 6
                       }}>
                         {verdict.label}
                       </div>
 
-                      <p style={{ color: "white", fontSize: 14, fontWeight: "bold", lineHeight: 1.2, marginBottom: 6 }}>{game.title}</p>
-                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 8 }}>{game.genres?.slice(0, 2).join(" · ")}</p>
+                      <p className="card-title" style={{ color: "white", fontSize: 14, fontWeight: "bold", lineHeight: 1.2, marginBottom: 4 }}>{game.title}</p>
+                      <p className="card-genre" style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 6 }}>{game.genres?.slice(0, 2).join(" · ")}</p>
 
                       {/* Stats */}
                       {game.total > 0 ? (
-                        <div style={{ display: "flex", gap: 8, fontSize: 11, fontWeight: "bold" }}>
+                        <div style={{ display: "flex", gap: 6, fontSize: 11, fontWeight: "bold" }}>
                           <span style={{ color: GREEN }}>{game.buy}%</span>
                           <span style={{ color: GOLD }}>{game.wait}%</span>
                           <span style={{ color: RED }}>{game.skip}%</span>
-                          <span style={{ color: "rgba(255,255,255,0.3)", marginLeft: "auto" }}>{game.total} reviews</span>
+                          <span style={{ color: "rgba(255,255,255,0.3)", marginLeft: "auto" }}>{game.total}</span>
                         </div>
                       ) : (
                         <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>No reviews yet</p>
@@ -236,6 +237,28 @@ export default function NewReleasesPage() {
           </div>
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 767px) {
+          .games-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+          }
+          .card-content {
+            padding: 10px !important;
+          }
+          .card-title {
+            font-size: 12px !important;
+          }
+          .card-genre {
+            display: none !important;
+          }
+          .time-badge {
+            font-size: 9px !important;
+            padding: 2px 5px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
