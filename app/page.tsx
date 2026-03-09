@@ -494,7 +494,7 @@ export default function Home() {
             </div>
             {/* Links */}
             {[
-              { label: "Trending", href: "#" },
+              { label: "Trending", href: "Trending" },
               { label: "New Releases", href: "/new-releases" },
               { label: "Creators", href: "/creators" },
               { label: "All Games", href: "/games" },
