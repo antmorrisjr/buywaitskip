@@ -34,13 +34,22 @@ function formatSubs(count: number) {
 export default function CreatorsPage() {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     async function fetchCreators() {
       const { data: creatorsData } = await supabase
-  .from("creators")
-  .select("id, name, handle, avatar_url, subscriber_count, genre_tags, youtube_channel_id")
-  .eq("is_media", false);
+        .from("creators")
+        .select("id, name, handle, avatar_url, subscriber_count, genre_tags, youtube_channel_id")
+        .eq("is_media", false);
 
       const { data: reviews } = await supabase
         .from("reviews")
@@ -66,27 +75,69 @@ export default function CreatorsPage() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: BG }}>
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between gap-6 px-6 py-4 border-b border-white/10" style={{ backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
-        <a href="/" style={{ textDecoration: "none" }} className="flex items-center gap-3">
-          <div className="flex gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GREEN }} />
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GOLD }} />
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: RED }} />
+
+      {/* ── NAV ── */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 16px" }}>
+
+          {/* Logo */}
+          <a href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", gap: 5 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: GREEN, display: "block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: GOLD, display: "block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: RED, display: "block" }} />
+              </div>
+              <span style={{ color: "white", fontWeight: "bold", letterSpacing: "0.15em", fontSize: 16 }}>BUYWAITSKIP</span>
+            </div>
+          </a>
+
+          {/* Desktop nav links */}
+          <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 32 }}>
+            <a href="/trending" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >Trending</a>
+            <a href="/new-releases" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >New Releases</a>
+            <a href="/creators" style={{ color: GREEN, textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}>Creators</a>
+            <a href="/games" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >All Games</a>
           </div>
-          <span className="text-xl font-bold tracking-widest text-white">BUYWAITSKIP</span>
-        </a>
-        <div className="hidden md:flex items-center gap-8">
-  <a href="/" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Home</a>
-  <a href="/trending" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Trending</a>
-  <a href="/new-releases" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">New Releases</a>
-  <a href="/creators" className="font-medium text-sm uppercase tracking-wider transition-colors" style={{ color: GREEN }}>Creators</a>
-</div>
-<a href="/" style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, textDecoration: "none" }}>← Back to Home</a>
-</nav>
+
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{ display: isMobile ? "flex" : "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 8 }}
+          >
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(45deg) translate(2px, 3px)" : "none" }} />
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "opacity 0.2s", opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(-45deg) translate(2px, -3px)" : "none" }} />
+          </button>
+        </div>
+
+        {/* Mobile dropdown */}
+        {menuOpen && isMobile && (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.98)", padding: "16px" }}>
+            {[
+              { label: "Trending", href: "/trending" },
+              { label: "New Releases", href: "/new-releases" },
+              { label: "Creators", href: "/creators" },
+              { label: "All Games", href: "/games" },
+            ].map(link => (
+              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}
+                style={{ display: "block", color: link.href === "/creators" ? GREEN : "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", padding: "12px 8px", textDecoration: "none", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+              >{link.label}</a>
+            ))}
+          </div>
+        )}
+      </nav>
 
       <div style={{ maxWidth: 1152, margin: "0 auto", padding: "48px 24px" }}>
-        {/* Header */}
         <div style={{ marginBottom: 40 }}>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>Trusted Voices</p>
           <h1 style={{ color: "white", fontSize: 42, fontWeight: "bold", margin: "0 0 12px" }}>Our Creators</h1>
@@ -106,48 +157,23 @@ export default function CreatorsPage() {
                 style={{ textDecoration: "none" }}
               >
                 <div
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 16,
-                    padding: 24,
-                    cursor: "pointer",
-                    transition: "transform 0.2s, border-color 0.2s",
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.transform = "translateY(-4px)";
-                    e.currentTarget.style.borderColor = "rgba(0,230,118,0.4)";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                  }}
+                  style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 24, cursor: "pointer", transition: "transform 0.2s, border-color 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(0,230,118,0.4)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
                 >
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 12 }}>
-                  {creator.avatar_url ? (
-  <img
-    src={creator.avatar_url}
-    alt={creator.name}
-    referrerPolicy="no-referrer"
-    style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.1)" }}
-  />
-) : (
-  <div style={{
-    width: 120,
-    height: 120,
-    borderRadius: "50%",
-    backgroundColor: `hsl(${creator.name.charCodeAt(0) * 137 % 360}, 50%, 25%)`,
-    border: "2px solid rgba(255,255,255,0.1)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 36,
-    fontWeight: "bold",
-    color: `hsl(${creator.name.charCodeAt(0) * 137 % 360}, 70%, 70%)`,
-  }}>
-    {creator.name.charAt(0).toUpperCase()}
-  </div>
-)}
+                    {creator.avatar_url ? (
+                      <img
+                        src={creator.avatar_url}
+                        alt={creator.name}
+                        referrerPolicy="no-referrer"
+                        style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.1)" }}
+                      />
+                    ) : (
+                      <div style={{ width: 120, height: 120, borderRadius: "50%", backgroundColor: `hsl(${creator.name.charCodeAt(0) * 137 % 360}, 50%, 25%)`, border: "2px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: "bold", color: `hsl(${creator.name.charCodeAt(0) * 137 % 360}, 70%, 70%)` }}>
+                        {creator.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div>
                       <p style={{ color: "white", fontWeight: "bold", fontSize: 22, margin: "12px 0 4px" }}>{creator.name}</p>
                       <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, margin: "0 0 16px" }}>{creator.handle}</p>
