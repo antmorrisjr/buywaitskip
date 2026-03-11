@@ -95,13 +95,20 @@ export default function AllGamesPage() {
 
       const { data: reviews } = await supabase
         .from("reviews")
-        .select("game_id, verdict, creators(is_media)")
+        .select("game_id, verdict, creator_id")
         .not("verdict", "is", null);
 
+      const { data: mediaCreators } = await supabase
+        .from("creators")
+        .select("id")
+        .eq("is_media", true);
+
+      const mediaIds = new Set((mediaCreators || []).map(c => c.id));
+
       const reviewMap: Record<string, { buy: number; wait: number; skip: number; total: number }> = {};
+
       for (const r of reviews || []) {
-        const creator = r.creators as any;
-        if (creator?.is_media) continue; // creator verdicts only
+        if (mediaIds.has(r.creator_id)) continue;
         if (!reviewMap[r.game_id]) reviewMap[r.game_id] = { buy: 0, wait: 0, skip: 0, total: 0 };
         reviewMap[r.game_id].total++;
         if (r.verdict === "BUY") reviewMap[r.game_id].buy++;
@@ -277,14 +284,15 @@ export default function AllGamesPage() {
           }}>
             {filtered.map(game => (
               <Link key={game.id} href={`/game/${game.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
-                <div style={{
-                  background: SURFACE,
-                  border: `1px solid ${BORDER}`,
-                  overflow: "hidden",
-                  transition: "transform 0.15s ease, border-color 0.15s ease",
-                  cursor: "pointer",
-                  borderRadius: 2,
-                }}
+                <div
+                  style={{
+                    background: SURFACE,
+                    border: `1px solid ${BORDER}`,
+                    overflow: "hidden",
+                    transition: "transform 0.15s ease, border-color 0.15s ease",
+                    cursor: "pointer",
+                    borderRadius: 2,
+                  }}
                   onMouseEnter={e => {
                     (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
                     const verdictColor = game.verdict === "BUY" ? GREEN : game.verdict === "WAIT" ? GOLD : RED;
