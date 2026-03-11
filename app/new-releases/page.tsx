@@ -67,6 +67,15 @@ function timeAgo(dateStr: string) {
 export default function NewReleasesPage() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -120,28 +129,69 @@ export default function NewReleasesPage() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: BG }}>
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between gap-6 px-6 py-4 border-b border-white/10" style={{ backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
-        <a href="/" style={{ textDecoration: "none" }} className="flex items-center gap-3">
-          <div className="flex gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GREEN }} />
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GOLD }} />
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: RED }} />
+
+      {/* ── NAV ── */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 16px" }}>
+
+          {/* Logo */}
+          <a href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", gap: 5 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: GREEN, display: "block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: GOLD, display: "block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: RED, display: "block" }} />
+              </div>
+              <span style={{ color: "white", fontWeight: "bold", letterSpacing: "0.15em", fontSize: 16 }}>BUYWAITSKIP</span>
+            </div>
+          </a>
+
+          {/* Desktop nav links */}
+          <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 32 }}>
+            <a href="/trending" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >Trending</a>
+            <a href="/new-releases" style={{ color: GREEN, textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}>New Releases</a>
+            <a href="/creators" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >Creators</a>
+            <a href="/games" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >All Games</a>
           </div>
-          <span className="text-xl font-bold tracking-widest text-white">BUYWAITSKIP</span>
-        </a>
-        <div className="hidden md:flex items-center gap-8">
-          <a href="/" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Home</a>
-          <a href="/trending" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Trending</a>
-          <a href="/new-releases" className="font-medium text-sm uppercase tracking-wider transition-colors" style={{ color: GREEN }}>New Releases</a>
-          <a href="/creators" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Creators</a>
-          <a href="/games" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">All Games</a>
+
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{ display: isMobile ? "flex" : "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 8 }}
+          >
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(45deg) translate(2px, 3px)" : "none" }} />
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "opacity 0.2s", opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(-45deg) translate(2px, -3px)" : "none" }} />
+          </button>
         </div>
-        <a href="/" style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, textDecoration: "none" }}>← Back to Home</a>
+
+        {/* Mobile dropdown */}
+        {menuOpen && isMobile && (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.98)", padding: "16px" }}>
+            {[
+              { label: "Trending", href: "/trending" },
+              { label: "New Releases", href: "/new-releases" },
+              { label: "Creators", href: "/creators" },
+              { label: "All Games", href: "/games" },
+            ].map(link => (
+              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}
+                style={{ display: "block", color: link.href === "/new-releases" ? GREEN : "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", padding: "12px 8px", textDecoration: "none", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+              >{link.label}</a>
+            ))}
+          </div>
+        )}
       </nav>
 
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "48px 24px" }}>
-        {/* Header */}
         <div style={{ marginBottom: 40 }}>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>Just Dropped</p>
           <h1 style={{ color: "white", fontSize: 42, fontWeight: "bold", margin: "0 0 12px" }}>New Releases</h1>
@@ -161,64 +211,25 @@ export default function NewReleasesPage() {
                 <a key={game.id} href={`/game/${game.slug}`} style={{ textDecoration: "none" }}>
                   <div
                     className="game-card"
-                    style={{
-                      position: "relative",
-                      borderRadius: 12,
-                      overflow: "hidden",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      backgroundColor: "rgba(255,255,255,0.03)",
-                      cursor: "pointer",
-                      aspectRatio: "3/4",
-                      transition: "transform 0.2s, border-color 0.2s",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = "translateY(-4px)";
-                      e.currentTarget.style.borderColor = `${verdict.color}66`;
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                    }}
+                    style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(255,255,255,0.03)", cursor: "pointer", aspectRatio: "3/4", transition: "transform 0.2s, border-color 0.2s" }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = `${verdict.color}66`; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
                   >
-                    {/* Image */}
                     {image ? (
                       <img src={image} alt={game.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))" }} />
                     )}
-
-                    {/* Gradient overlay */}
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,10,18,0.97) 0%, rgba(10,10,18,0.3) 55%, transparent 100%)" }} />
-
-                    {/* Time ago badge */}
-                    <div className="time-badge" style={{
-                      position: "absolute", top: 8, right: 8, zIndex: 3,
-                      fontSize: 10, fontWeight: "bold", color: "rgba(255,255,255,0.7)",
-                      backgroundColor: "rgba(0,0,0,0.75)",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      padding: "2px 7px", borderRadius: 20,
-                    }}>
+                    <div className="time-badge" style={{ position: "absolute", top: 8, right: 8, zIndex: 3, fontSize: 10, fontWeight: "bold", color: "rgba(255,255,255,0.7)", backgroundColor: "rgba(0,0,0,0.75)", border: "1px solid rgba(255,255,255,0.15)", padding: "2px 7px", borderRadius: 20 }}>
                       {timeAgo(game.release_date)}
                     </div>
-
-                    {/* Bottom content */}
                     <div className="card-content" style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 14 }}>
-                      {/* Verdict badge */}
-                      <div style={{
-                        display: "inline-flex", alignItems: "center", gap: 5,
-                        fontSize: 10, fontWeight: "bold", letterSpacing: "0.1em",
-                        textTransform: "uppercase", color: verdict.color,
-                        background: `${verdict.color}18`,
-                        border: `1px solid ${verdict.color}44`,
-                        padding: "3px 8px", borderRadius: 4, marginBottom: 6
-                      }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: "bold", letterSpacing: "0.1em", textTransform: "uppercase", color: verdict.color, background: `${verdict.color}18`, border: `1px solid ${verdict.color}44`, padding: "3px 8px", borderRadius: 4, marginBottom: 6 }}>
                         {verdict.label}
                       </div>
-
                       <p className="card-title" style={{ color: "white", fontSize: 14, fontWeight: "bold", lineHeight: 1.2, marginBottom: 4 }}>{game.title}</p>
                       <p className="card-genre" style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 6 }}>{game.genres?.slice(0, 2).join(" · ")}</p>
-
-                      {/* Stats */}
                       {game.total > 0 ? (
                         <div style={{ display: "flex", gap: 6, fontSize: 11, fontWeight: "bold" }}>
                           <span style={{ color: GREEN }}>{game.buy}%</span>
@@ -240,23 +251,11 @@ export default function NewReleasesPage() {
 
       <style>{`
         @media (max-width: 767px) {
-          .games-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 12px !important;
-          }
-          .card-content {
-            padding: 10px !important;
-          }
-          .card-title {
-            font-size: 12px !important;
-          }
-          .card-genre {
-            display: none !important;
-          }
-          .time-badge {
-            font-size: 9px !important;
-            padding: 2px 5px !important;
-          }
+          .games-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+          .card-content { padding: 10px !important; }
+          .card-title { font-size: 12px !important; }
+          .card-genre { display: none !important; }
+          .time-badge { font-size: 9px !important; padding: 2px 5px !important; }
         }
       `}</style>
     </div>
