@@ -82,6 +82,16 @@ export default function AllGamesPage() {
   const [sort, setSort] = useState<SortOption>("buy-pct-desc");
   const [verdictFilter, setVerdictFilter] = useState("ALL");
   const [search, setSearch] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // isMobile state — replaces broken Tailwind md: classes
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -172,19 +182,83 @@ export default function AllGamesPage() {
     <div style={{ background: BG, minHeight: "100vh", color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
 
-      {/* Header */}
-      <div style={{ borderBottom: `1px solid ${BORDER}`, padding: "24px 32px", display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
-        <Link href="/" style={{ color: "#555", textDecoration: "none", fontSize: 13, letterSpacing: 1 }}>
-          ← HOME
-        </Link>
-        <div>
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 42, letterSpacing: 3, margin: 0, lineHeight: 1 }}>
-            ALL GAMES
-          </h1>
-          <p style={{ margin: 0, fontSize: 13, color: "#666", marginTop: 4 }}>
-            {loading ? "Loading..." : `${filtered.length} games · Creator verdicts only`}
-          </p>
+      {/* ── NAV ── */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 16px" }}>
+
+          {/* Logo */}
+          <a href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", gap: 5 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: GREEN, display: "block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: GOLD, display: "block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: RED, display: "block" }} />
+              </div>
+              <span style={{ color: "white", fontWeight: "bold", letterSpacing: "0.15em", fontSize: 16 }}>BUYWAITSKIP</span>
+            </div>
+          </a>
+
+          {/* Desktop nav links */}
+          <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 32 }}>
+            <a href="/trending" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >Trending</a>
+            <a href="/new-releases" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >New Releases</a>
+            <a href="/creators" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >Creators</a>
+            <a href="/games" style={{ color: GREEN, textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}>All Games</a>
+          </div>
+
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              display: isMobile ? "flex" : "none",
+              flexDirection: "column",
+              gap: 5,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 8,
+            }}
+          >
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(45deg) translate(2px, 3px)" : "none" }} />
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "opacity 0.2s", opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(-45deg) translate(2px, -3px)" : "none" }} />
+          </button>
         </div>
+
+        {/* Mobile dropdown */}
+        {menuOpen && isMobile && (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.98)", padding: "16px" }}>
+            {[
+              { label: "Trending", href: "/trending" },
+              { label: "New Releases", href: "/new-releases" },
+              { label: "Creators", href: "/creators" },
+              { label: "All Games", href: "/games" },
+            ].map(link => (
+              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}
+                style={{ display: "block", color: link.href === "/games" ? GREEN : "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", padding: "12px 8px", textDecoration: "none", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+              >{link.label}</a>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      {/* Page Header */}
+      <div style={{ borderBottom: `1px solid ${BORDER}`, padding: "24px 32px" }}>
+        <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 42, letterSpacing: 3, margin: 0, lineHeight: 1 }}>
+          ALL GAMES
+        </h1>
+        <p style={{ margin: 0, fontSize: 13, color: "#666", marginTop: 4 }}>
+          {loading ? "Loading..." : `${filtered.length} games · Creator verdicts only`}
+        </p>
       </div>
 
       {/* Controls */}
@@ -197,7 +271,6 @@ export default function AllGamesPage() {
         alignItems: "center",
         background: SURFACE,
       }}>
-        {/* Search */}
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -215,7 +288,6 @@ export default function AllGamesPage() {
           }}
         />
 
-        {/* Sort */}
         <select
           value={sort}
           onChange={e => setSort(e.target.value as SortOption)}
@@ -236,7 +308,6 @@ export default function AllGamesPage() {
           ))}
         </select>
 
-        {/* Verdict filter */}
         <div style={{ display: "flex", gap: 4 }}>
           {VERDICT_OPTIONS.map(v => {
             const active = verdictFilter === v;
@@ -303,7 +374,6 @@ export default function AllGamesPage() {
                     (e.currentTarget as HTMLDivElement).style.borderColor = BORDER;
                   }}
                 >
-                  {/* Cover */}
                   <div style={{ position: "relative", aspectRatio: "2/3", background: "#0D0D1A", overflow: "hidden" }}>
                     {game.cover_url ? (
                       <img
@@ -316,20 +386,16 @@ export default function AllGamesPage() {
                         <span style={{ fontSize: 11, color: "#333", letterSpacing: 2 }}>NO IMAGE</span>
                       </div>
                     )}
-                    {/* Verdict overlay */}
                     <div style={{ position: "absolute", top: 8, left: 8 }}>
                       <VerdictBadge verdict={game.verdict} />
                     </div>
                   </div>
 
-                  {/* Info */}
                   <div style={{ padding: "12px 12px 14px" }}>
                     <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3, marginBottom: 8, color: "#eee" }}>
                       {game.title}
                     </div>
-
                     <MiniBar buyPct={game.buyPct} waitPct={game.waitPct} skipPct={game.skipPct} />
-
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, color: "#555" }}>
                       <span style={{ color: GREEN }}>{game.buyPct}% BUY</span>
                       <span>{game.reviewCount} reviews</span>
