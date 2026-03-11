@@ -203,15 +203,10 @@ function HeroCarousel({ games }: { games: Game[] }) {
       <div style={{ maxWidth: "1152px", margin: "0 auto" }}>
         <a href={`/game/${game.slug}`} style={{ textDecoration: "none", display: "block" }}>
           <div style={{ position: "relative", width: "100%", height: heroHeight, borderRadius: "16px", overflow: "hidden", cursor: "pointer" }}>
-            {/* Prev image */}
             <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${prev.backgroundImage})`, backgroundSize: "cover", backgroundPosition: "center top", opacity: fading ? 1 : 0, transition: "opacity 0.6s ease-in-out", filter: "brightness(1.15)" }} />
-            {/* Current image */}
             <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${game.backgroundImage})`, backgroundSize: "cover", backgroundPosition: "center top", opacity: fading ? 0 : 1, transition: "opacity 0.6s ease-in-out", filter: "brightness(1.15)" }} />
-            {/* Gradients */}
             <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, transparent 40%, rgba(10,10,18,0.85) 100%)", zIndex: 2 }} />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,10,18,0.97) 0%, rgba(10,10,18,0.5) 30%, transparent 55%)", zIndex: 2 }} />
-
-            {/* Content overlay */}
             <div style={{ position: "absolute", bottom: 0, left: 0, padding: contentPadding, width: contentWidth, zIndex: 3 }}>
               <p style={{ color: "rgba(255,255,255,0.6)", fontSize: isMobile ? "9px" : "11px", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: "6px" }}>{game.developer}</p>
               {game.status === 'upcoming' && (
@@ -236,12 +231,8 @@ function HeroCarousel({ games }: { games: Game[] }) {
                 </div>
               </div>
             </div>
-
-            {/* Arrows — moved higher on mobile so they don't overlap stat boxes */}
             <button onClick={e => { e.preventDefault(); goTo((currentSlide - 1 + games.length) % games.length); }} style={{ position: "absolute", left: "12px", top: isMobile ? "35%" : "50%", transform: "translateY(-50%)", width: isMobile ? "32px" : "40px", height: isMobile ? "32px" : "40px", borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: isMobile ? "16px" : "20px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 4 }}>‹</button>
             <button onClick={e => { e.preventDefault(); goTo((currentSlide + 1) % games.length); }} style={{ position: "absolute", right: "12px", top: isMobile ? "35%" : "50%", transform: "translateY(-50%)", width: isMobile ? "32px" : "40px", height: isMobile ? "32px" : "40px", borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: isMobile ? "16px" : "20px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 4 }}>›</button>
-
-            {/* Dots */}
             <div style={{ position: "absolute", bottom: isMobile ? "12px" : "24px", right: isMobile ? "12px" : "24px", display: "flex", gap: "6px", alignItems: "center", zIndex: 3 }}>
               {games.map((_, index) => (
                 <button key={index} onClick={e => { e.preventDefault(); goTo(index); }} style={{ width: currentSlide === index ? "20px" : "6px", height: "6px", borderRadius: "9999px", backgroundColor: currentSlide === index ? GREEN : "rgba(255,255,255,0.4)", border: "none", cursor: "pointer", transition: "all 0.3s", padding: 0 }} />
@@ -336,6 +327,15 @@ export default function Home() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // ── FIXED: isMobile state replaces broken Tailwind md: responsive classes ──
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       const { data: games, error } = await supabase
@@ -428,8 +428,9 @@ export default function Home() {
     <div className="min-h-screen" style={{ backgroundColor: BG }}>
 
       {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 border-b border-white/10" style={{ backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 16px" }}>
+
           {/* Logo */}
           <a href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -442,16 +443,28 @@ export default function Home() {
             </div>
           </a>
 
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Trending</a>
-            <a href="/new-releases" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">New Releases</a>
-            <a href="/creators" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Creators</a>
-            <a href="/games" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">All Games</a>
+          {/* Desktop nav links — hidden on mobile */}
+          <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 32 }}>
+            <a href="/trending" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >Trending</a>
+            <a href="/new-releases" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >New Releases</a>
+            <a href="/creators" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >Creators</a>
+            <a href="/games" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
+              onMouseEnter={e => e.currentTarget.style.color = "white"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
+            >All Games</a>
           </div>
 
-          {/* Desktop search */}
-          <div className="hidden md:block flex-1 max-w-xs" style={{ position: "relative" }}>
+          {/* Desktop search — hidden on mobile */}
+          <div style={{ display: isMobile ? "none" : "block", flex: 1, maxWidth: 300, position: "relative" }}>
             <input
               type="search"
               placeholder="Search games & creators..."
@@ -459,16 +472,23 @@ export default function Home() {
               onChange={e => setSearchQuery(e.target.value)}
               onFocus={() => setSearchOpen(true)}
               onBlur={() => setTimeout(() => setSearchOpen(false), 300)}
-              style={{ width: "100%", borderRadius: 999, padding: "8px 16px", fontSize: 14, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", outline: "none" }}
+              style={{ width: "100%", borderRadius: 999, padding: "8px 16px", fontSize: 14, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", outline: "none", boxSizing: "border-box" }}
             />
             <SearchDropdown />
           </div>
 
-          {/* Mobile: hamburger */}
+          {/* Hamburger — shown only on mobile */}
           <button
-            className="md:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", flexDirection: "column", gap: 5 }}
+            style={{
+              display: isMobile ? "flex" : "none",
+              flexDirection: "column",
+              gap: 5,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 8,
+            }}
           >
             <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(45deg) translate(2px, 3px)" : "none" }} />
             <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "opacity 0.2s", opacity: menuOpen ? 0 : 1 }} />
@@ -477,9 +497,8 @@ export default function Home() {
         </div>
 
         {/* Mobile dropdown menu */}
-        {menuOpen && (
+        {menuOpen && isMobile && (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.98)", padding: "16px" }}>
-            {/* Search */}
             <div style={{ position: "relative", marginBottom: 16 }}>
               <input
                 type="search"
@@ -492,9 +511,8 @@ export default function Home() {
               />
               <SearchDropdown isMobileMenu />
             </div>
-            {/* Links */}
             {[
-              { label: "Trending", href: "trending" },
+              { label: "Trending", href: "/trending" },
               { label: "New Releases", href: "/new-releases" },
               { label: "Creators", href: "/creators" },
               { label: "All Games", href: "/games" },
