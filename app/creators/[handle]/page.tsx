@@ -145,7 +145,7 @@ export default function CreatorPage({ params }: { params: Promise<{ handle: stri
   const gridCols = isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: BG }}>
+    <div style={{ minHeight: "100vh", backgroundColor: BG, overflowX: "hidden" }}>
       <nav className="sticky top-0 z-50 flex items-center justify-between gap-6 px-6 py-4 border-b border-white/10" style={{ backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
         <a href="/" style={{ textDecoration: "none" }} className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -250,7 +250,7 @@ export default function CreatorPage({ params }: { params: Promise<{ handle: stri
             No reviews found
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: isMobile ? 10 : 16 }}>
             {filteredReviews.map(review => {
               const coverImage = steamHeroImages[review.games?.slug] || review.games?.cover_url;
               return (
