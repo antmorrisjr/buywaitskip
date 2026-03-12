@@ -365,30 +365,42 @@ export default function Home() {
         .select('id, title, slug, developer, genres, release_date, featured, featured_order, status, cover_url');
       if (error) { console.error('Error:', error); return; }
 
-      const { data: reviews, error: reviewError } = await supabase
-        .from('reviews')
-        .select('game_id, verdict')
-        .limit(10000);
-      if (reviewError) { console.error('Reviews error:', reviewError); return; }
-
       const { data: creatorsData } = await supabase
         .from('creators')
         .select('id, name, handle, avatar_url')
         .not('avatar_url', 'is', null);
       setAllCreators(creatorsData || []);
 
+      // Paginated fetch to handle 1000+ reviews (Supabase default cap is 1000 rows)
+      const countMap: Record<string, { buy: number; wait: number; skip: number; total: number }> = {};
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data: page, error: pageError } = await supabase
+          .from('reviews')
+          .select('game_id, verdict')
+          .range(from, from + pageSize - 1);
+        if (pageError) { console.error('Reviews page error:', pageError); break; }
+        if (!page || page.length === 0) break;
+        page.forEach((r: any) => {
+          if (!countMap[r.game_id]) countMap[r.game_id] = { buy: 0, wait: 0, skip: 0, total: 0 };
+          countMap[r.game_id].total++;
+          if (r.verdict === 'BUY') countMap[r.game_id].buy++;
+          if (r.verdict === 'WAIT') countMap[r.game_id].wait++;
+          if (r.verdict === 'SKIP') countMap[r.game_id].skip++;
+        });
+        if (page.length < pageSize) break;
+        from += pageSize;
+      }
+
       const gamesWithVerdicts = games.map((game: any) => {
-        const gameReviews = reviews.filter((r: any) => r.game_id === game.id);
-        const total = gameReviews.length;
-        const buy = total ? Math.round((gameReviews.filter((r: any) => r.verdict === 'BUY').length / total) * 100) : 0;
-        const wait = total ? Math.round((gameReviews.filter((r: any) => r.verdict === 'WAIT').length / total) * 100) : 0;
-        const skip = total ? Math.round((gameReviews.filter((r: any) => r.verdict === 'SKIP').length / total) * 100) : 0;
+        const c = countMap[game.id] || { buy: 0, wait: 0, skip: 0, total: 0 };
         return {
           ...game,
-          buy,
-          wait,
-          skip,
-          total,
+          buy: c.total ? Math.round((c.buy / c.total) * 100) : 0,
+          wait: c.total ? Math.round((c.wait / c.total) * 100) : 0,
+          skip: c.total ? Math.round((c.skip / c.total) * 100) : 0,
+          total: c.total,
           backgroundImage: steamHeroImages[game.slug] || game.cover_url || ''
         };
       });
