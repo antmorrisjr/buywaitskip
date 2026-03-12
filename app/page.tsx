@@ -119,6 +119,7 @@ type Game = {
   buy: number;
   wait: number;
   skip: number;
+  total: number;
   backgroundImage: string;
   release_date: string;
 };
@@ -198,6 +199,16 @@ function HeroCarousel({ games }: { games: Game[] }) {
   const contentPadding = isMobile ? "1rem" : "2rem";
   const contentWidth = isMobile ? "88%" : "60%";
 
+  // Determine dominant verdict label for upcoming games or games with reviews
+  const getVerdictLabel = (g: Game) => {
+    if (g.status === 'upcoming' || g.total === 0) return null;
+    if (g.buy >= 60) return { label: "BUY", color: GREEN };
+    if (g.skip >= 50) return { label: "SKIP", color: RED };
+    return { label: "WAIT", color: GOLD };
+  };
+
+  const verdict = getVerdictLabel(game);
+
   return (
     <section style={{ backgroundColor: BG, padding: isMobile ? "12px" : "24px" }}>
       <div style={{ maxWidth: "1152px", margin: "0 auto" }}>
@@ -214,22 +225,34 @@ function HeroCarousel({ games }: { games: Game[] }) {
                   <span style={{ fontSize: isMobile ? "9px" : "11px", fontWeight: "bold", color: "white", letterSpacing: "0.15em", textTransform: "uppercase" }}>🕐 Reviews Coming Soon</span>
                 </div>
               )}
+              {verdict && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 6, backgroundColor: `${verdict.color}20`, border: `1px solid ${verdict.color}44`, marginBottom: 8 }}>
+                  <span style={{ fontSize: isMobile ? "9px" : "11px", fontWeight: "bold", color: verdict.color, letterSpacing: "0.15em", textTransform: "uppercase" }}>VERDICT: {verdict.label}</span>
+                </div>
+              )}
               <h1 style={{ color: "white", fontSize: titleSize, fontWeight: "bold", lineHeight: 1.1, marginBottom: "6px" }}>{game.title}</h1>
               <p style={{ color: "rgba(255,255,255,0.7)", fontSize: isMobile ? "11px" : "14px", marginBottom: isMobile ? "12px" : "24px" }}>{game.genres?.join(" · ")}</p>
-              <div style={{ display: "flex", gap: isMobile ? "6px" : "12px" }}>
-                <div style={{ backgroundColor: "rgba(0,230,118,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: statPadding, minWidth: statMinWidth, textAlign: "center" }}>
-                  <p style={{ color: GREEN, fontSize: statLabelSize, fontWeight: "bold", textTransform: "uppercase", marginBottom: "4px" }}>Buy</p>
-                  <p style={{ color: "white", fontSize: statFontSize, fontWeight: "bold", margin: 0 }}>{game.buy}%</p>
+              {game.status !== 'upcoming' && game.total > 0 && (
+                <div style={{ display: "flex", gap: isMobile ? "6px" : "12px" }}>
+                  <div style={{ backgroundColor: "rgba(0,230,118,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: statPadding, minWidth: statMinWidth, textAlign: "center" }}>
+                    <p style={{ color: GREEN, fontSize: statLabelSize, fontWeight: "bold", textTransform: "uppercase", marginBottom: "4px" }}>Buy</p>
+                    <p style={{ color: "white", fontSize: statFontSize, fontWeight: "bold", margin: 0 }}>{game.buy}%</p>
+                  </div>
+                  <div style={{ backgroundColor: "rgba(255,215,64,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: statPadding, minWidth: statMinWidth, textAlign: "center" }}>
+                    <p style={{ color: GOLD, fontSize: statLabelSize, fontWeight: "bold", textTransform: "uppercase", marginBottom: "4px" }}>Wait</p>
+                    <p style={{ color: "white", fontSize: statFontSize, fontWeight: "bold", margin: 0 }}>{game.wait}%</p>
+                  </div>
+                  <div style={{ backgroundColor: "rgba(255,82,82,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: statPadding, minWidth: statMinWidth, textAlign: "center" }}>
+                    <p style={{ color: RED, fontSize: statLabelSize, fontWeight: "bold", textTransform: "uppercase", marginBottom: "4px" }}>Skip</p>
+                    <p style={{ color: "white", fontSize: statFontSize, fontWeight: "bold", margin: 0 }}>{game.skip}%</p>
+                  </div>
                 </div>
-                <div style={{ backgroundColor: "rgba(255,215,64,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: statPadding, minWidth: statMinWidth, textAlign: "center" }}>
-                  <p style={{ color: GOLD, fontSize: statLabelSize, fontWeight: "bold", textTransform: "uppercase", marginBottom: "4px" }}>Wait</p>
-                  <p style={{ color: "white", fontSize: statFontSize, fontWeight: "bold", margin: 0 }}>{game.wait}%</p>
+              )}
+              {game.status !== 'upcoming' && game.total === 0 && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                  <span style={{ fontSize: isMobile ? "11px" : "13px", color: "rgba(255,255,255,0.6)" }}>Reviews processing...</span>
                 </div>
-                <div style={{ backgroundColor: "rgba(255,82,82,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: statPadding, minWidth: statMinWidth, textAlign: "center" }}>
-                  <p style={{ color: RED, fontSize: statLabelSize, fontWeight: "bold", textTransform: "uppercase", marginBottom: "4px" }}>Skip</p>
-                  <p style={{ color: "white", fontSize: statFontSize, fontWeight: "bold", margin: 0 }}>{game.skip}%</p>
-                </div>
-              </div>
+              )}
             </div>
             <button onClick={e => { e.preventDefault(); goTo((currentSlide - 1 + games.length) % games.length); }} style={{ position: "absolute", left: "12px", top: isMobile ? "35%" : "50%", transform: "translateY(-50%)", width: isMobile ? "32px" : "40px", height: isMobile ? "32px" : "40px", borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: isMobile ? "16px" : "20px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 4 }}>‹</button>
             <button onClick={e => { e.preventDefault(); goTo((currentSlide + 1) % games.length); }} style={{ position: "absolute", right: "12px", top: isMobile ? "35%" : "50%", transform: "translateY(-50%)", width: isMobile ? "32px" : "40px", height: isMobile ? "32px" : "40px", borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: isMobile ? "16px" : "20px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 4 }}>›</button>
@@ -327,7 +350,6 @@ export default function Home() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // ── FIXED: isMobile state replaces broken Tailwind md: responsive classes ──
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -360,10 +382,23 @@ export default function Home() {
         const buy = total ? Math.round((gameReviews.filter((r: any) => r.verdict === 'BUY').length / total) * 100) : 0;
         const wait = total ? Math.round((gameReviews.filter((r: any) => r.verdict === 'WAIT').length / total) * 100) : 0;
         const skip = total ? Math.round((gameReviews.filter((r: any) => r.verdict === 'SKIP').length / total) * 100) : 0;
-        return { ...game, buy, wait, skip, backgroundImage: steamHeroImages[game.slug] || game.cover_url || '' };
+        return {
+          ...game,
+          buy,
+          wait,
+          skip,
+          total,
+          backgroundImage: steamHeroImages[game.slug] || game.cover_url || ''
+        };
       });
 
-      const featured = gamesWithVerdicts.filter((g: any) => g.featured).sort((a: any, b: any) => (a.featured_order || 99) - (b.featured_order || 99)).slice(0, 6);
+      // ── KEY FIX: featured games must have at least 1 review OR be upcoming
+      // This prevents 0%/0%/0% ghost verdicts from showing in the hero carousel
+      const featured = gamesWithVerdicts
+        .filter((g: any) => g.featured && (g.total > 0 || g.status === 'upcoming'))
+        .sort((a: any, b: any) => (a.featured_order || 99) - (b.featured_order || 99))
+        .slice(0, 6);
+
       const trending = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming').sort((a: any, b: any) => b.buy - a.buy).slice(0, 20);
       const recent = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming').sort((a: any, b: any) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime()).slice(0, 20);
       const upcoming = gamesWithVerdicts.filter((g: any) => g.status === 'upcoming').sort((a: any, b: any) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
@@ -443,7 +478,7 @@ export default function Home() {
             </div>
           </a>
 
-          {/* Desktop nav links — hidden on mobile */}
+          {/* Desktop nav links */}
           <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 32 }}>
             <a href="/trending" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
               onMouseEnter={e => e.currentTarget.style.color = "white"}
@@ -463,7 +498,7 @@ export default function Home() {
             >All Games</a>
           </div>
 
-          {/* Desktop search — hidden on mobile */}
+          {/* Desktop search */}
           <div style={{ display: isMobile ? "none" : "block", flex: 1, maxWidth: 300, position: "relative" }}>
             <input
               type="search"
@@ -477,18 +512,10 @@ export default function Home() {
             <SearchDropdown />
           </div>
 
-          {/* Hamburger — shown only on mobile */}
+          {/* Hamburger */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            style={{
-              display: isMobile ? "flex" : "none",
-              flexDirection: "column",
-              gap: 5,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 8,
-            }}
+            style={{ display: isMobile ? "flex" : "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 8 }}
           >
             <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(45deg) translate(2px, 3px)" : "none" }} />
             <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "opacity 0.2s", opacity: menuOpen ? 0 : 1 }} />
@@ -496,7 +523,7 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Mobile dropdown menu */}
+        {/* Mobile dropdown */}
         {menuOpen && isMobile && (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.98)", padding: "16px" }}>
             <div style={{ position: "relative", marginBottom: 16 }}>
