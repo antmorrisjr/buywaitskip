@@ -35,10 +35,14 @@ export default function CreatorsPage() {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-
   const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
+    const check = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 1024);
+    };
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
@@ -72,6 +76,8 @@ export default function CreatorsPage() {
     }
     fetchCreators();
   }, []);
+
+  const gridCols = isMobile ? "repeat(1, 1fr)" : isTablet ? "repeat(2, 1fr)" : "repeat(3, 1fr)";
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: BG }}>
@@ -149,7 +155,7 @@ export default function CreatorsPage() {
             <p style={{ color: "rgba(255,255,255,0.4)" }}>Loading creators...</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 20 }}>
             {creators.map(creator => (
               <a
                 key={creator.id}

@@ -67,43 +67,58 @@ export default function CreatorPage({ params }: { params: Promise<{ handle: stri
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"ALL" | "BUY" | "WAIT" | "SKIP">("ALL");
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 1024);
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
-      // Try with @ prefix first, then without
-let { data: creatorData } = await supabase
-.from("creators")
-.select("*")
-.eq("handle", `@${handle}`)
-.maybeSingle();
+      // Find creator
+      let { data: creatorData } = await supabase
+        .from("creators")
+        .select("*")
+        .eq("handle", `@${handle}`)
+        .maybeSingle();
 
-if (!creatorData) {
-const { data } = await supabase
-  .from("creators")
-  .select("*")
-  .eq("handle", handle)
-  .maybeSingle();
-creatorData = data;
-}
-
-if (!creatorData) {
-const { data } = await supabase
-  .from("creators")
-  .select("*")
-  .eq("id", handle)
-  .maybeSingle();
-creatorData = data;
-}
+      if (!creatorData) {
+        const { data } = await supabase.from("creators").select("*").eq("handle", handle).maybeSingle();
+        creatorData = data;
+      }
+      if (!creatorData) {
+        const { data } = await supabase.from("creators").select("*").eq("id", handle).maybeSingle();
+        creatorData = data;
+      }
       if (!creatorData) { setLoading(false); return; }
       setCreator(creatorData);
 
-      const { data: reviewData } = await supabase
-        .from("reviews")
-        .select("*, games(title, slug, cover_url, genres)")
-        .eq("creator_id", creatorData.id)
-        .order("published_at", { ascending: false });
+      // FIX: Paginate reviews to get past Supabase's 1000-row limit
+      const PAGE_SIZE = 1000;
+      let allReviews: any[] = [];
+      let page = 0;
+      while (true) {
+        const { data: batch } = await supabase
+          .from("reviews")
+          .select("*, games(title, slug, cover_url, genres)")
+          .eq("creator_id", creatorData.id)
+          .order("published_at", { ascending: false })
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
-      setReviews(reviewData || []);
+        if (!batch || batch.length === 0) break;
+        allReviews = [...allReviews, ...batch];
+        if (batch.length < PAGE_SIZE) break;
+        page++;
+      }
+
+      setReviews(allReviews);
       setLoading(false);
     }
     fetchData();
@@ -126,6 +141,9 @@ creatorData = data;
   const skipCount = reviews.filter(r => r.verdict === "SKIP").length;
   const filteredReviews = filter === "ALL" ? reviews : reviews.filter(r => r.verdict === filter);
 
+  // Responsive grid: 4 col desktop, 2 col tablet, 1 col mobile
+  const gridCols = isMobile ? "repeat(1, 1fr)" : isTablet ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: BG }}>
       <nav className="sticky top-0 z-50 flex items-center justify-between gap-6 px-6 py-4 border-b border-white/10" style={{ backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
@@ -138,41 +156,42 @@ creatorData = data;
           <span className="text-xl font-bold tracking-widest text-white">BUYWAITSKIP</span>
         </a>
         <div className="hidden md:flex items-center gap-8">
-  <a href="/" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Home</a>
-  <a href="/trending" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Trending</a>
-  <a href="/new-releases" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">New Releases</a>
-  <a href="/creators" className="font-medium text-sm uppercase tracking-wider transition-colors" style={{ color: GREEN }}>Creators</a>
-</div>
+          <a href="/" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Home</a>
+          <a href="/trending" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">Trending</a>
+          <a href="/new-releases" className="text-white/80 hover:text-white font-medium text-sm uppercase tracking-wider transition-colors">New Releases</a>
+          <a href="/creators" className="font-medium text-sm uppercase tracking-wider transition-colors" style={{ color: GREEN }}>Creators</a>
+        </div>
         <a href="/creators" style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, textDecoration: "none" }}>← All Creators</a>
       </nav>
 
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "48px 24px", background: "linear-gradient(135deg, rgba(0,230,118,0.05) 0%, rgba(10,10,18,0) 60%)" }}>
-        <div style={{ maxWidth: 1152, margin: "0 auto", display: "flex", alignItems: "center", gap: 32 }}>
+      {/* Hero */}
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", padding: isMobile ? "32px 16px" : "48px 24px", background: "linear-gradient(135deg, rgba(0,230,118,0.05) 0%, rgba(10,10,18,0) 60%)" }}>
+        <div style={{ maxWidth: 1152, margin: "0 auto", display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 16 : 32, flexDirection: isMobile ? "column" : "row" }}>
           <img
             src={creator.avatar_url}
             alt={creator.name}
-            style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(255,255,255,0.1)", flexShrink: 0 }}
+            style={{ width: isMobile ? 80 : 120, height: isMobile ? 80 : 120, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(255,255,255,0.1)", flexShrink: 0 }}
           />
           <div style={{ flex: 1 }}>
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>Creator Profile</p>
-            <h1 style={{ color: "white", fontSize: 42, fontWeight: "bold", margin: "0 0 4px" }}>{creator.name}</h1>
+            <h1 style={{ color: "white", fontSize: isMobile ? 28 : 42, fontWeight: "bold", margin: "0 0 4px" }}>{creator.name}</h1>
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, margin: "0 0 24px" }}>
               {creator.handle} · {formatSubs(creator.subscriber_count)} subscribers
             </p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(0,230,118,0.1)", border: "1px solid rgba(0,230,118,0.2)", textAlign: "center", minWidth: 80 }}>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(0,230,118,0.1)", border: "1px solid rgba(0,230,118,0.2)", textAlign: "center", minWidth: 72 }}>
                 <p style={{ color: GREEN, fontSize: 24, fontWeight: "bold", margin: 0 }}>{buyCount}</p>
                 <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, margin: "2px 0 0", textTransform: "uppercase" }}>BUY</p>
               </div>
-              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(255,215,64,0.1)", border: "1px solid rgba(255,215,64,0.2)", textAlign: "center", minWidth: 80 }}>
+              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(255,215,64,0.1)", border: "1px solid rgba(255,215,64,0.2)", textAlign: "center", minWidth: 72 }}>
                 <p style={{ color: GOLD, fontSize: 24, fontWeight: "bold", margin: 0 }}>{waitCount}</p>
                 <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, margin: "2px 0 0", textTransform: "uppercase" }}>WAIT</p>
               </div>
-              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(255,82,82,0.1)", border: "1px solid rgba(255,82,82,0.2)", textAlign: "center", minWidth: 80 }}>
+              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(255,82,82,0.1)", border: "1px solid rgba(255,82,82,0.2)", textAlign: "center", minWidth: 72 }}>
                 <p style={{ color: RED, fontSize: 24, fontWeight: "bold", margin: 0 }}>{skipCount}</p>
                 <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, margin: "2px 0 0", textTransform: "uppercase" }}>SKIP</p>
               </div>
-              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", textAlign: "center", minWidth: 80 }}>
+              <div style={{ padding: "12px 20px", borderRadius: 8, backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", textAlign: "center", minWidth: 72 }}>
                 <p style={{ color: "white", fontSize: 24, fontWeight: "bold", margin: 0 }}>{reviews.length}</p>
                 <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, margin: "2px 0 0", textTransform: "uppercase" }}>Total</p>
               </div>
@@ -191,7 +210,8 @@ creatorData = data;
         </div>
       </div>
 
-      <div style={{ maxWidth: 1152, margin: "0 auto", padding: "40px 24px" }}>
+      {/* Reviews grid */}
+      <div style={{ maxWidth: 1152, margin: "0 auto", padding: isMobile ? "24px 16px" : "40px 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
           <h2 style={{ color: "white", fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ display: "inline-block", width: 3, height: 16, backgroundColor: GREEN, borderRadius: 2 }} />
@@ -230,7 +250,7 @@ creatorData = data;
             No reviews found
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 16 }}>
             {filteredReviews.map(review => {
               const coverImage = steamHeroImages[review.games?.slug] || review.games?.cover_url;
               return (
