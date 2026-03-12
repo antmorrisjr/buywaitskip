@@ -296,40 +296,78 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
         />
 
         {/* GAMER SCORE */}
-        <div style={{ marginBottom: 48, padding: 20, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <h3 style={{ fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 16 }}>🎮 Gamer Score</h3>
-          {communityTotal > 0 && (
-            <>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <span style={{ color: communityTopColor, fontSize: 20, fontWeight: "bold" }}>{communityTopVerdict}</span>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>{communityTotal} gamer votes</span>
+       {/* GAMER SCORE */}
+       <div style={{ marginBottom: 48, borderRadius: 16, overflow: "hidden", border: "2px solid rgba(255,255,255,0.12)", background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)" }}>
+          {/* Header */}
+          <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 22 }}>🎮</span>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: "bold", color: "white", margin: 0, letterSpacing: "0.05em", textTransform: "uppercase" }}>Gamer Score</h3>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, marginTop: 2 }}>What players actually think — vote below</p>
               </div>
-              {[
-                { label: "BUY",  pct: communityBuyPct,  count: communityVotes.BUY,  color: GREEN },
-                { label: "WAIT", pct: communityWaitPct, count: communityVotes.WAIT, color: GOLD },
-                { label: "SKIP", pct: communitySkipPct, count: communityVotes.SKIP, color: RED },
-              ].map(({ label, pct, count, color }) => (
-                <div key={label} style={{ marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ color, fontSize: 12, fontWeight: "bold" }}>{label}</span>
-                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>{count} votes · {pct}%</span>
+            </div>
+            {communityTotal > 0 && communityTopVerdict && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 16px", borderRadius: 999, backgroundColor: `${communityTopColor}20`, border: `1px solid ${communityTopColor}50` }}>
+                <span style={{ color: communityTopColor, fontSize: 14, fontWeight: "bold", letterSpacing: "0.1em" }}>{communityTopVerdict}</span>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>{communityTotal} vote{communityTotal !== 1 ? "s" : ""}</span>
+              </div>
+            )}
+          </div>
+
+          <div style={{ padding: "20px 24px" }}>
+            {/* Vote bars — only show if votes exist */}
+            {communityTotal > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                {[
+                  { label: "BUY",  pct: communityBuyPct,  count: communityVotes.BUY,  color: GREEN },
+                  { label: "WAIT", pct: communityWaitPct, count: communityVotes.WAIT, color: GOLD },
+                  { label: "SKIP", pct: communitySkipPct, count: communityVotes.SKIP, color: RED },
+                ].map(({ label, pct, count, color }) => (
+                  <div key={label} style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <span style={{ color, fontSize: 13, fontWeight: "bold", letterSpacing: "0.1em" }}>{label}</span>
+                      <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>{count} vote{count !== 1 ? "s" : ""} · <span style={{ color: "white", fontWeight: "bold" }}>{pct}%</span></span>
+                    </div>
+                    <div style={{ height: 10, backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 999 }}>
+                      <div style={{ height: "100%", width: `${pct}%`, backgroundColor: color, borderRadius: 999, transition: "width 0.4s ease", minWidth: pct > 0 ? 8 : 0 }} />
+                    </div>
                   </div>
-                  <div style={{ height: 6, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 4 }}>
-                    <div style={{ height: "100%", width: `${pct}%`, backgroundColor: color, borderRadius: 4, transition: "width 0.3s" }} />
-                  </div>
-                </div>
+                ))}
+              </div>
+            )}
+
+            {/* CTA text */}
+            <p style={{ color: userVote ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.5)", fontSize: 14, marginBottom: 14, textAlign: "center" }}>
+              {userVote ? `✓ You voted ${userVote} — tap again to change or deselect` : communityTotal === 0 ? "Be the first to vote! What do YOU think?" : "Cast your vote — does the creator consensus match your take?"}
+            </p>
+
+            {/* Vote buttons */}
+            <div style={{ display: "flex", gap: 10 }}>
+              {[{ label: "BUY", color: GREEN }, { label: "WAIT", color: GOLD }, { label: "SKIP", color: RED }].map(({ label, color }) => (
+                <button
+                  key={label}
+                  onClick={() => handleVote(label)}
+                  disabled={voting}
+                  style={{
+                    flex: 1,
+                    padding: "14px 8px",
+                    borderRadius: 10,
+                    fontWeight: "bold",
+                    fontSize: 14,
+                    letterSpacing: "0.08em",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    backgroundColor: userVote === label ? color : "rgba(255,255,255,0.06)",
+                    color: userVote === label ? BG : color,
+                    border: `2px solid ${userVote === label ? color : `${color}50`}`,
+                    transform: userVote === label ? "scale(1.03)" : "scale(1)",
+                  }}
+                >
+                  {label}
+                </button>
               ))}
-            </>
-          )}
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginBottom: 12, marginTop: communityTotal > 0 ? 16 : 0 }}>
-            {userVote ? `You voted ${userVote} — click to change or deselect` : "What do YOU think?"}
-          </p>
-          <div style={{ display: "flex", gap: 8 }}>
-            {[{ label: "BUY", color: GREEN }, { label: "WAIT", color: GOLD }, { label: "SKIP", color: RED }].map(({ label, color }) => (
-              <button key={label} onClick={() => handleVote(label)} disabled={voting} style={{ flex: 1, padding: 10, borderRadius: 8, fontWeight: "bold", fontSize: 13, cursor: "pointer", transition: "all 0.2s", backgroundColor: userVote === label ? color : "rgba(255,255,255,0.06)", color: userVote === label ? BG : color, border: `1px solid ${color}` }}>
-                {label}
-              </button>
-            ))}
+            </div>
           </div>
         </div>
 
