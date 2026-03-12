@@ -299,14 +299,11 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
        {/* GAMER SCORE */}
        <div style={{ marginBottom: 48, borderRadius: 16, overflow: "hidden", border: "2px solid rgba(255,255,255,0.12)", background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)" }}>
           {/* Header */}
-          <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 22 }}>🎮</span>
-              <div>
-                <h3 style={{ fontSize: 18, fontWeight: "bold", color: "white", margin: 0, letterSpacing: "0.05em", textTransform: "uppercase" }}>Gamer Score</h3>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, marginTop: 2 }}>What players actually think — vote below</p>
-              </div>
-            </div>
+          <div style={{ padding: "28px 24px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, textAlign: "center" }}>
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+    <span style={{ fontSize: 32, fontWeight: 900, color: "white", letterSpacing: "-0.02em", textTransform: "uppercase", lineHeight: 1 }}>🎮 GAMER SCORE</span>
+  </div>
+  <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", margin: 0, textAlign: "center" }}>What players actually think — cast your vote below</p>
             {communityTotal > 0 && communityTopVerdict && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 16px", borderRadius: 999, backgroundColor: `${communityTopColor}20`, border: `1px solid ${communityTopColor}50` }}>
                 <span style={{ color: communityTopColor, fontSize: 14, fontWeight: "bold", letterSpacing: "0.1em" }}>{communityTopVerdict}</span>
