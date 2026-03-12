@@ -142,7 +142,7 @@ export default function CreatorPage({ params }: { params: Promise<{ handle: stri
   const filteredReviews = filter === "ALL" ? reviews : reviews.filter(r => r.verdict === filter);
 
   // Responsive grid: 4 col desktop, 2 col tablet, 1 col mobile
-  const gridCols = isMobile ? "repeat(1, 1fr)" : isTablet ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
+  const gridCols = isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: BG }}>

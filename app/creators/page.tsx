@@ -40,7 +40,7 @@ export default function CreatorsPage() {
 
   useEffect(() => {
     const check = () => {
-      setIsMobile(window.innerWidth < 640);
+      setIsMobile(window.innerWidth < 768);
       setIsTablet(window.innerWidth < 1024);
     };
     check();
@@ -77,7 +77,7 @@ export default function CreatorsPage() {
     fetchCreators();
   }, []);
 
-  const gridCols = isMobile ? "repeat(1, 1fr)" : isTablet ? "repeat(2, 1fr)" : "repeat(3, 1fr)";
+  const gridCols = isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr)";
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: BG }}>
