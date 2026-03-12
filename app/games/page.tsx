@@ -179,9 +179,8 @@ export default function AllGamesPage() {
   }, [games, sort, verdictFilter, search]);
 
   return (
-    <div style={{ background: BG, minHeight: "100vh", color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
-
+    <div style={{ background: BG, minHeight: "100vh", color: "#fff" }}>
+      
       {/* ── NAV ── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 16px" }}>
