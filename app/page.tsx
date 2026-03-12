@@ -367,7 +367,8 @@ export default function Home() {
 
       const { data: reviews, error: reviewError } = await supabase
         .from('reviews')
-        .select('game_id, verdict');
+        .select('game_id, verdict')
+        .limit(10000);
       if (reviewError) { console.error('Reviews error:', reviewError); return; }
 
       const { data: creatorsData } = await supabase
