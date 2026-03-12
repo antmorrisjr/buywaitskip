@@ -143,7 +143,7 @@ export default function CreatorsPage() {
         )}
       </nav>
 
-      <div style={{ maxWidth: 1152, margin: "0 auto", padding: "48px 24px" }}>
+      <div style={{ maxWidth: 1152, margin: "0 auto", padding: isMobile ? "32px 12px" : "48px 24px" }}>
         <div style={{ marginBottom: 40 }}>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>Trusted Voices</p>
           <h1 style={{ color: "white", fontSize: 42, fontWeight: "bold", margin: "0 0 12px" }}>Our Creators</h1>

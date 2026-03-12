@@ -166,7 +166,7 @@ export default function CreatorPage({ params }: { params: Promise<{ handle: stri
 
       {/* Hero */}
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", padding: isMobile ? "32px 16px" : "48px 24px", background: "linear-gradient(135deg, rgba(0,230,118,0.05) 0%, rgba(10,10,18,0) 60%)" }}>
-        <div style={{ maxWidth: 1152, margin: "0 auto", display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 16 : 32, flexDirection: isMobile ? "column" : "row" }}>
+        <div style={{ maxWidth: 1152, margin: "0 auto", display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 12 : 20, flexDirection: isMobile ? "column" : "row" }}>
           <img
             src={creator.avatar_url}
             alt={creator.name}
@@ -211,7 +211,7 @@ export default function CreatorPage({ params }: { params: Promise<{ handle: stri
       </div>
 
       {/* Reviews grid */}
-      <div style={{ maxWidth: 1152, margin: "0 auto", padding: isMobile ? "24px 16px" : "40px 24px" }}>
+      <div style={{ maxWidth: 1152, margin: "0 auto", padding: isMobile ? "24px 12px" : "40px 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
           <h2 style={{ color: "white", fontSize: 13, fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.2em", margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ display: "inline-block", width: 3, height: 16, backgroundColor: GREEN, borderRadius: 2 }} />
