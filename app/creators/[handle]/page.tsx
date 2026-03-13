@@ -254,7 +254,7 @@ export default function CreatorPage({ params }: { params: Promise<{ handle: stri
             {filteredReviews.map(review => {
               const coverImage = steamHeroImages[review.games?.slug] || review.games?.cover_url;
               return (
-                <a key={review.id} href={`/game/${review.games?.slug}`} style={{ textDecoration: "none" }}>
+                <a key={review.id} href={`/game/${review.games?.slug}`} style={{ textDecoration: "none", minWidth: 0 }}>
                   <div
                     style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden", cursor: "pointer", transition: "transform 0.2s, border-color 0.2s" }}
                     onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; }}
