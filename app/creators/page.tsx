@@ -51,14 +51,25 @@ export default function CreatorsPage() {
         .select("id, name, handle, avatar_url, subscriber_count, genre_tags, youtube_channel_id")
         .eq("is_media", false);
 
-      const { data: reviews } = await supabase
-        .from("reviews")
-        .select("creator_id");
+      // FIX: Paginate reviews to get past Supabase's 1000-row limit
+      let reviews: any[] = [];
+      let page = 0;
+      const PAGE_SIZE = 1000;
+      while (true) {
+        const { data: batch } = await supabase
+          .from("reviews")
+          .select("creator_id")
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        if (!batch || batch.length === 0) break;
+        reviews = [...reviews, ...batch];
+        if (batch.length < PAGE_SIZE) break;
+        page++;
+      }
 
       if (!creatorsData) return;
 
       const reviewCounts: Record<string, number> = {};
-      reviews?.forEach((r: any) => {
+      reviews.forEach((r: any) => {
         reviewCounts[r.creator_id] = (reviewCounts[r.creator_id] || 0) + 1;
       });
 
