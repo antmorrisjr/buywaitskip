@@ -45,22 +45,22 @@ function BuyButtons({ game, verdict }: { game: any; verdict: string }) {
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
-            padding: "14px 28px",
-borderRadius: 10,
-backgroundColor: "#FF9900",
-color: "#000",
-fontWeight: "900",
-fontSize: 16,
-boxShadow: "0 4px 20px rgba(255,153,0,0.4)",
+            gap: 10,
+            padding: "14px 24px",
+            borderRadius: 10,
+            backgroundColor: "#FF9900",
+            color: "white",
+            fontWeight: "bold",
+            fontSize: 15,
             textDecoration: "none",
-            letterSpacing: "0.02em",
+            letterSpacing: "0.03em",
+            boxShadow: "0 4px 20px rgba(255,153,0,0.35)",
             transition: "opacity 0.2s",
           }}
           onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
           onMouseLeave={e => e.currentTarget.style.opacity = "1"}
         >
-          🛒 Buy on Amazon
+           Buy on Amazon →
         </a>
       )}
       {steamUrl && (
