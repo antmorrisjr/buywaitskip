@@ -412,7 +412,7 @@ export default function Home() {
         .sort((a: any, b: any) => (a.featured_order || 99) - (b.featured_order || 99))
         .slice(0, 6);
 
-      const trending = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming').sort((a: any, b: any) => b.buy - a.buy).slice(0, 20);
+        const trending = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming' && g.total >= 3).sort((a: any, b: any) => b.total - a.total).slice(0, 20);
       const recent = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming').sort((a: any, b: any) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime()).slice(0, 20);
       const upcoming = gamesWithVerdicts.filter((g: any) => g.status === 'upcoming').sort((a: any, b: any) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
 
