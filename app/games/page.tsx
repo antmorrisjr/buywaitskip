@@ -79,7 +79,7 @@ const VERDICT_OPTIONS = ["ALL", "BUY", "WAIT", "SKIP"];
 export default function AllGamesPage() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState<SortOption>("buy-pct-desc");
+  const [sort, setSort] = useState<SortOption>("newest");
   const [verdictFilter, setVerdictFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
