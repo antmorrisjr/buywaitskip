@@ -12,6 +12,7 @@ const BG = "#0A0A12";
 const GREEN = "#00E676";
 const GOLD = "#FFD740";
 const RED = "#FF5252";
+const AMAZON_TAG = "buywaitskip-20";
 
 function getFingerprint() {
   const key = "bws_fingerprint";
@@ -21,6 +22,74 @@ function getFingerprint() {
     localStorage.setItem(key, fp);
   }
   return fp;
+}
+
+function BuyButtons({ game, verdict }: { game: any; verdict: string }) {
+  if (verdict !== "BUY") return null;
+
+  const amazonUrl = game.amazon_url
+    ? `${game.amazon_url}${game.amazon_url.includes("?") ? "&" : "?"}tag=${AMAZON_TAG}`
+    : null;
+
+  const steamUrl = game.steam_url || null;
+
+  if (!amazonUrl && !steamUrl) return null;
+
+  return (
+    <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
+      {amazonUrl && (
+        <a
+          href={amazonUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "12px 20px",
+            borderRadius: 10,
+            backgroundColor: "#FF9900",
+            color: "#000",
+            fontWeight: "bold",
+            fontSize: 14,
+            textDecoration: "none",
+            letterSpacing: "0.02em",
+            transition: "opacity 0.2s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+        >
+          🛒 Buy on Amazon
+        </a>
+      )}
+      {steamUrl && (
+        <a
+          href={steamUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "12px 20px",
+            borderRadius: 10,
+            backgroundColor: "rgba(103,193,245,0.15)",
+            border: "1px solid rgba(103,193,245,0.4)",
+            color: "#67C1F5",
+            fontWeight: "bold",
+            fontSize: 14,
+            textDecoration: "none",
+            letterSpacing: "0.02em",
+            transition: "opacity 0.2s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+        >
+          🎮 View on Steam
+        </a>
+      )}
+    </div>
+  );
 }
 
 function CreatorsVsMedia({
@@ -60,14 +129,12 @@ function CreatorsVsMedia({
       )}
 
       <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.02)" }}>
-        {/* Top color bar */}
         <div style={{ display: "flex", height: 5 }}>
           <div style={{ flex: 1, backgroundColor: creatorColor }} />
           <div style={{ width: 3, backgroundColor: "#0A0A12" }} />
           <div style={{ flex: 1, backgroundColor: mediaVerdict ? mediaColor : "rgba(255,255,255,0.08)" }} />
         </div>
 
-        {/* Scoreboard row — responsive */}
         <div className="cvm-row" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, padding: "28px 24px 20px", flexWrap: "wrap" }}>
           <span className="cvm-label" style={{ fontSize: 32, fontWeight: 900, color: "white", letterSpacing: "-0.02em", textTransform: "uppercase", lineHeight: 1 }}>CREATOR</span>
           <span className="cvm-badge" style={{ fontSize: 26, fontWeight: 900, backgroundColor: creatorColor, color: "#0A0A12", padding: "5px 16px", borderRadius: 8, letterSpacing: "0.05em", lineHeight: 1, textTransform: "uppercase", display: "inline-block" }}>
@@ -84,7 +151,6 @@ function CreatorsVsMedia({
           <span className="cvm-label" style={{ fontSize: 32, fontWeight: 900, color: "rgba(255,255,255,0.4)", letterSpacing: "-0.02em", textTransform: "uppercase", lineHeight: 1 }}>MEDIA</span>
         </div>
 
-        {/* Secondary stats */}
         <div className="cvm-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderTop: "1px solid rgba(255,255,255,0.05)", padding: "14px 24px", gap: 24 }}>
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{creatorTotal} reviews</span>
@@ -217,7 +283,7 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
 
       <div style={{ padding: "32px 16px 64px", maxWidth: 1152, margin: "0 auto" }} className="game-page-content">
 
-        {/* HERO — stacks on mobile */}
+        {/* HERO */}
         <div className="game-hero" style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 40, marginBottom: 40, alignItems: "flex-start" }}>
           {game.cover_url ? (
             <img src={game.cover_url} alt={game.title} className="game-cover" style={{ width: 240, height: 320, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", display: "block" }} />
@@ -242,6 +308,9 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
               <span style={{ fontSize: 12, fontWeight: "bold", color: confidenceColor, letterSpacing: "0.1em" }}>{confidence} CONFIDENCE</span>
               <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>· {total} creator reviews</span>
             </div>
+
+            {/* BUY BUTTONS — only shows on BUY verdict games with links */}
+            <BuyButtons game={game} verdict={topVerdict} />
           </div>
         </div>
 
@@ -296,14 +365,12 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
         />
 
         {/* GAMER SCORE */}
-       {/* GAMER SCORE */}
-       <div style={{ marginBottom: 48, borderRadius: 16, overflow: "hidden", border: "2px solid rgba(255,255,255,0.12)", background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)" }}>
-          {/* Header */}
+        <div style={{ marginBottom: 48, borderRadius: 16, overflow: "hidden", border: "2px solid rgba(255,255,255,0.12)", background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)" }}>
           <div style={{ padding: "28px 24px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, textAlign: "center" }}>
-  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-    <span style={{ fontSize: 32, fontWeight: 900, color: "white", letterSpacing: "-0.02em", textTransform: "uppercase", lineHeight: 1 }}>🎮 GAMER SCORE</span>
-  </div>
-  <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", margin: 0, textAlign: "center" }}>What players actually think — cast your vote below</p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+              <span style={{ fontSize: 32, fontWeight: 900, color: "white", letterSpacing: "-0.02em", textTransform: "uppercase", lineHeight: 1 }}>🎮 GAMER SCORE</span>
+            </div>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", margin: 0, textAlign: "center" }}>What players actually think — cast your vote below</p>
             {communityTotal > 0 && communityTopVerdict && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 16px", borderRadius: 999, backgroundColor: `${communityTopColor}20`, border: `1px solid ${communityTopColor}50` }}>
                 <span style={{ color: communityTopColor, fontSize: 14, fontWeight: "bold", letterSpacing: "0.1em" }}>{communityTopVerdict}</span>
@@ -313,7 +380,6 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
           </div>
 
           <div style={{ padding: "20px 24px" }}>
-            {/* Vote bars — only show if votes exist */}
             {communityTotal > 0 && (
               <div style={{ marginBottom: 24 }}>
                 {[
@@ -334,12 +400,10 @@ export default function GamePageClient({ game, reviews = [] }: { game: any; revi
               </div>
             )}
 
-            {/* CTA text */}
             <p style={{ color: userVote ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.5)", fontSize: 14, marginBottom: 14, textAlign: "center" }}>
               {userVote ? `✓ You voted ${userVote} — tap again to change or deselect` : communityTotal === 0 ? "Be the first to vote! What do YOU think?" : "Cast your vote — does the creator consensus match your take?"}
             </p>
 
-            {/* Vote buttons */}
             <div style={{ display: "flex", gap: 10 }}>
               {[{ label: "BUY", color: GREEN }, { label: "WAIT", color: GOLD }, { label: "SKIP", color: RED }].map(({ label, color }) => (
                 <button
