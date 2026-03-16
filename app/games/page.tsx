@@ -103,10 +103,20 @@ export default function AllGamesPage() {
 
       if (!gamesData) return;
 
-      const { data: reviews } = await supabase
-        .from("reviews")
-        .select("game_id, verdict, creator_id")
-        .not("verdict", "is", null);
+      let reviews: any[] = [];
+let page = 0;
+const PAGE_SIZE = 1000;
+while (true) {
+  const { data: batch } = await supabase
+    .from("reviews")
+    .select("game_id, verdict, creator_id")
+    .not("verdict", "is", null)
+    .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+  if (!batch || batch.length === 0) break;
+  reviews = [...reviews, ...batch];
+  if (batch.length < PAGE_SIZE) break;
+  page++;
+}
 
       const { data: mediaCreators } = await supabase
         .from("creators")
