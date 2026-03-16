@@ -413,7 +413,17 @@ export default function Home() {
         .sort((a: any, b: any) => (a.featured_order || 99) - (b.featured_order || 99))
         .slice(0, 6);
 
-        const trending = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming' && g.total >= 3).sort((a: any, b: any) => b.total - a.total).slice(0, 20);
+        const now = Date.now();
+const trending = [...gamesWithVerdicts]
+  .filter((g: any) => g.status !== 'upcoming' && g.total >= 3)
+  .sort((a: any, b: any) => {
+    const ageA = now - new Date(a.release_date || 0).getTime();
+    const ageB = now - new Date(b.release_date || 0).getTime();
+    const decayA = Math.exp(-ageA / (1000 * 60 * 60 * 24 * 365));
+    const decayB = Math.exp(-ageB / (1000 * 60 * 60 * 24 * 365));
+    return (b.total * (0.4 + 0.6 * decayB)) - (a.total * (0.4 + 0.6 * decayA));
+  })
+  .slice(0, 20);
       const recent = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming').sort((a: any, b: any) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime()).slice(0, 20);
       const upcoming = gamesWithVerdicts.filter((g: any) => g.status === 'upcoming').sort((a: any, b: any) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
 
