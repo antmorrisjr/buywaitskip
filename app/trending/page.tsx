@@ -78,7 +78,8 @@ export default function TrendingPage() {
         while (true) {
           const { data: batch } = await supabase
             .from('reviews')
-            .select('game_id, verdict')
+            .select('game_id, verdict, creators!inner(is_media)')
+.eq('creators.is_media', false)
             .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
           if (!batch || batch.length === 0) break;
           reviews = [...reviews, ...batch];

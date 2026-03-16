@@ -378,7 +378,8 @@ export default function Home() {
       while (true) {
         const { data: page, error: pageError } = await supabase
           .from('reviews')
-          .select('game_id, verdict')
+          .select('game_id, verdict, creators!inner(is_media)')
+.eq('creators.is_media', false)
           .range(from, from + pageSize - 1);
         if (pageError) { console.error('Reviews page error:', pageError); break; }
         if (!page || page.length === 0) break;
