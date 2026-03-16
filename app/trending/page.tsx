@@ -72,9 +72,19 @@ export default function TrendingPage() {
         .select("id, title, slug, cover_url, genres, release_date")
         .eq("status", "released");
 
-      const { data: reviews } = await supabase
-        .from("reviews")
-        .select("game_id, verdict");
+        let reviews: any[] = [];
+        let page = 0;
+        const PAGE_SIZE = 1000;
+        while (true) {
+          const { data: batch } = await supabase
+            .from('reviews')
+            .select('game_id, verdict')
+            .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+          if (!batch || batch.length === 0) break;
+          reviews = [...reviews, ...batch];
+          if (batch.length < PAGE_SIZE) break;
+          page++;
+        }
 
       if (!gamesData || !reviews) return;
 
