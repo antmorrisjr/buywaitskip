@@ -51,7 +51,7 @@ function BuyButtons({ game, verdict }: { game: any; verdict: string }) {
             backgroundColor: "#FF9900",
             color: "white",
             fontWeight: "bold",
-            fontSize: 15,
+            fontSize: 18,
             textDecoration: "none",
             letterSpacing: "0.03em",
             boxShadow: "0 4px 20px rgba(255,153,0,0.35)",
