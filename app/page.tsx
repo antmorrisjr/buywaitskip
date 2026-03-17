@@ -172,7 +172,9 @@ function ControversialCard({ game }: { game: ControversialGame }) {
         onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(255,215,64,0.5)"; }}
         onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,215,64,0.2)"; }}
       >
-        <div style={{ height: 140, backgroundImage: image ? `url(${image})` : undefined, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "rgba(255,255,255,0.05)" }} />
+        <div style={{ height: 140, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.05)" }}>
+  {image && <img src={image} alt={game.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} referrerPolicy="no-referrer" />}
+</div>
         <div style={{ padding: 14 }}>
           <p style={{ color: "white", fontWeight: "bold", fontSize: 13, margin: "0 0 10px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{game.title}</p>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -751,7 +753,7 @@ export default function Home() {
         <section className="px-6 py-10" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(135deg, rgba(255,215,64,0.04) 0%, rgba(10,10,18,0) 60%)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
             <span style={{ fontSize: 20 }}>⚡</span>
-            <h2 className="text-2xl font-bold text-white uppercase tracking-wider" style={{ margin: 0 }}>Critics vs Gamers</h2>
+            <h2 className="text-2xl font-bold text-white uppercase tracking-wider" style={{ margin: 0 }}>Gamers vs Critics</h2>
           </div>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginBottom: 24 }}>Games where creators and media can't agree — the most controversial titles right now.</p>
           <div style={{ position: "relative" }}>
