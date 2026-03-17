@@ -162,7 +162,7 @@ function GameCard({ title, slug, buy, wait, skip, cover_url }: { title: string; 
 }
 
 function ControversialCard({ game }: { game: ControversialGame }) {
-  const image = steamHeroImages[game.slug] || game.cover_url;
+  const image = game.cover_url;
   const creatorColor = game.creatorVerdict === "BUY" ? GREEN : game.creatorVerdict === "WAIT" ? GOLD : RED;
   const mediaColor = game.mediaVerdict === "BUY" ? GREEN : game.mediaVerdict === "WAIT" ? GOLD : RED;
   return (
