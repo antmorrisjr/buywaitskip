@@ -86,9 +86,20 @@ export default function NewReleasesPage() {
         .order("release_date", { ascending: false })
         .limit(50);
 
-      const { data: reviews } = await supabase
-        .from("reviews")
-        .select("game_id, verdict");
+        let reviews: any[] = [];
+        let page = 0;
+        const PAGE_SIZE = 1000;
+        while (true) {
+          const { data: batch } = await supabase
+            .from("reviews")
+            .select("game_id, verdict, creators!inner(is_media)")
+            .eq("creators.is_media", false)
+            .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+          if (!batch || batch.length === 0) break;
+          reviews = [...reviews, ...batch];
+          if (batch.length < PAGE_SIZE) break;
+          page++;
+        }
 
       if (!gamesData || !reviews) return;
 
