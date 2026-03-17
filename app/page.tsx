@@ -124,6 +124,13 @@ type Game = {
   release_date: string;
 };
 
+type ControversialGame = Game & {
+  creatorVerdict: string;
+  mediaVerdict: string;
+  creatorBuy: number;
+  mediaBuy: number;
+};
+
 type Creator = {
   id: string;
   name: string;
@@ -147,6 +154,37 @@ function GameCard({ title, slug, buy, wait, skip, cover_url }: { title: string; 
             <span style={{ color: GREEN }}>BUY {buy}%</span>
             <span style={{ color: GOLD }}>WAIT {wait}%</span>
             <span style={{ color: RED }}>SKIP {skip}%</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  );
+}
+
+function ControversialCard({ game }: { game: ControversialGame }) {
+  const image = steamHeroImages[game.slug] || game.cover_url;
+  const creatorColor = game.creatorVerdict === "BUY" ? GREEN : game.creatorVerdict === "WAIT" ? GOLD : RED;
+  const mediaColor = game.mediaVerdict === "BUY" ? GREEN : game.mediaVerdict === "WAIT" ? GOLD : RED;
+  return (
+    <a href={`/game/${game.slug}`} style={{ textDecoration: "none", flexShrink: 0 }}>
+      <div
+        style={{ width: "220px", borderRadius: 12, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,215,64,0.2)", transition: "transform 0.2s, border-color 0.2s", cursor: "pointer" }}
+        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(255,215,64,0.5)"; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(255,215,64,0.2)"; }}
+      >
+        <div style={{ height: 140, backgroundImage: image ? `url(${image})` : undefined, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "rgba(255,255,255,0.05)" }} />
+        <div style={{ padding: 14 }}>
+          <p style={{ color: "white", fontWeight: "bold", fontSize: 13, margin: "0 0 10px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{game.title}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ flex: 1, textAlign: "center", padding: "6px 4px", borderRadius: 6, backgroundColor: `${creatorColor}18`, border: `1px solid ${creatorColor}40` }}>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 9, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Creators</p>
+              <p style={{ color: creatorColor, fontSize: 13, fontWeight: "bold", margin: 0 }}>{game.creatorVerdict}</p>
+            </div>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, fontWeight: "bold" }}>VS</span>
+            <div style={{ flex: 1, textAlign: "center", padding: "6px 4px", borderRadius: 6, backgroundColor: `${mediaColor}18`, border: `1px solid ${mediaColor}40` }}>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 9, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Media</p>
+              <p style={{ color: mediaColor, fontSize: 13, fontWeight: "bold", margin: 0 }}>{game.mediaVerdict}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -199,7 +237,6 @@ function HeroCarousel({ games }: { games: Game[] }) {
   const contentPadding = isMobile ? "1rem" : "2rem";
   const contentWidth = isMobile ? "88%" : "60%";
 
-  // Determine dominant verdict label for upcoming games or games with reviews
   const getVerdictLabel = (g: Game) => {
     if (g.status === 'upcoming' || g.total === 0) return null;
     if (g.buy >= 60) return { label: "BUY", color: GREEN };
@@ -343,6 +380,7 @@ export default function Home() {
   const [trendingGames, setTrendingGames] = useState<Game[]>([]);
   const [recentGames, setRecentGames] = useState<Game[]>([]);
   const [upcomingGames, setUpcomingGames] = useState<Game[]>([]);
+  const [controversialGames, setControversialGames] = useState<ControversialGame[]>([]);
   const [allGames, setAllGames] = useState<Game[]>([]);
   const [allCreators, setAllCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
@@ -371,31 +409,62 @@ export default function Home() {
         .not('avatar_url', 'is', null);
       setAllCreators(creatorsData || []);
 
-      // Paginated fetch to handle 1000+ reviews (Supabase default cap is 1000 rows)
-      const countMap: Record<string, { buy: number; wait: number; skip: number; total: number }> = {};
+      // Fetch creator reviews (paginated)
+      const creatorMap: Record<string, { buy: number; wait: number; skip: number; total: number }> = {};
       let from = 0;
       const pageSize = 1000;
       while (true) {
         const { data: page, error: pageError } = await supabase
           .from('reviews')
           .select('game_id, verdict, creators!inner(is_media)')
-.eq('creators.is_media', false)
+          .eq('creators.is_media', false)
           .range(from, from + pageSize - 1);
         if (pageError) { console.error('Reviews page error:', pageError); break; }
         if (!page || page.length === 0) break;
         page.forEach((r: any) => {
-          if (!countMap[r.game_id]) countMap[r.game_id] = { buy: 0, wait: 0, skip: 0, total: 0 };
-          countMap[r.game_id].total++;
-          if (r.verdict === 'BUY') countMap[r.game_id].buy++;
-          if (r.verdict === 'WAIT') countMap[r.game_id].wait++;
-          if (r.verdict === 'SKIP') countMap[r.game_id].skip++;
+          if (!creatorMap[r.game_id]) creatorMap[r.game_id] = { buy: 0, wait: 0, skip: 0, total: 0 };
+          creatorMap[r.game_id].total++;
+          if (r.verdict === 'BUY') creatorMap[r.game_id].buy++;
+          if (r.verdict === 'WAIT') creatorMap[r.game_id].wait++;
+          if (r.verdict === 'SKIP') creatorMap[r.game_id].skip++;
         });
         if (page.length < pageSize) break;
         from += pageSize;
       }
 
+      // Fetch media reviews (paginated)
+      const mediaMap: Record<string, { buy: number; wait: number; skip: number; total: number }> = {};
+      let mediaFrom = 0;
+      while (true) {
+        const { data: page } = await supabase
+          .from('reviews')
+          .select('game_id, verdict, creators!inner(is_media)')
+          .eq('creators.is_media', true)
+          .range(mediaFrom, mediaFrom + pageSize - 1);
+        if (!page || page.length === 0) break;
+        page.forEach((r: any) => {
+          if (!mediaMap[r.game_id]) mediaMap[r.game_id] = { buy: 0, wait: 0, skip: 0, total: 0 };
+          mediaMap[r.game_id].total++;
+          if (r.verdict === 'BUY') mediaMap[r.game_id].buy++;
+          if (r.verdict === 'WAIT') mediaMap[r.game_id].wait++;
+          if (r.verdict === 'SKIP') mediaMap[r.game_id].skip++;
+        });
+        if (page.length < pageSize) break;
+        mediaFrom += pageSize;
+      }
+
+      const getVerdict = (c: { buy: number; wait: number; skip: number; total: number }) => {
+        if (c.total === 0) return null;
+        const bp = Math.round((c.buy / c.total) * 100);
+        const wp = Math.round((c.wait / c.total) * 100);
+        const sp = Math.round((c.skip / c.total) * 100);
+        if (bp >= 60) return { verdict: "BUY", buy: bp, wait: wp, skip: sp };
+        if (sp >= 50) return { verdict: "SKIP", buy: bp, wait: wp, skip: sp };
+        return { verdict: "WAIT", buy: bp, wait: wp, skip: sp };
+      };
+
       const gamesWithVerdicts = games.map((game: any) => {
-        const c = countMap[game.id] || { buy: 0, wait: 0, skip: 0, total: 0 };
+        const c = creatorMap[game.id] || { buy: 0, wait: 0, skip: 0, total: 0 };
         return {
           ...game,
           buy: c.total ? Math.round((c.buy / c.total) * 100) : 0,
@@ -406,31 +475,59 @@ export default function Home() {
         };
       });
 
-      // ── KEY FIX: featured games must have at least 1 review OR be upcoming
-      // This prevents 0%/0%/0% ghost verdicts from showing in the hero carousel
       const featured = gamesWithVerdicts
         .filter((g: any) => g.featured && (g.total > 0 || g.status === 'upcoming'))
         .sort((a: any, b: any) => (a.featured_order || 99) - (b.featured_order || 99))
         .slice(0, 6);
 
-        const now = Date.now();
-const trending = [...gamesWithVerdicts]
-  .filter((g: any) => g.status !== 'upcoming' && g.total >= 3)
-  .sort((a: any, b: any) => {
-    const ageA = now - new Date(a.release_date || 0).getTime();
-    const ageB = now - new Date(b.release_date || 0).getTime();
-    const decayA = Math.exp(-ageA / (1000 * 60 * 60 * 24 * 365));
-    const decayB = Math.exp(-ageB / (1000 * 60 * 60 * 24 * 365));
-    return (b.total * (0.4 + 0.6 * decayB)) - (a.total * (0.4 + 0.6 * decayA));
-  })
-  .slice(0, 20);
-      const recent = [...gamesWithVerdicts].filter((g: any) => g.status !== 'upcoming').sort((a: any, b: any) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime()).slice(0, 20);
-      const upcoming = gamesWithVerdicts.filter((g: any) => g.status === 'upcoming').sort((a: any, b: any) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
+      const now = Date.now();
+      const trending = [...gamesWithVerdicts]
+        .filter((g: any) => g.status !== 'upcoming' && g.total >= 3)
+        .sort((a: any, b: any) => {
+          const ageA = now - new Date(a.release_date || 0).getTime();
+          const ageB = now - new Date(b.release_date || 0).getTime();
+          const decayA = Math.exp(-ageA / (1000 * 60 * 60 * 24 * 365));
+          const decayB = Math.exp(-ageB / (1000 * 60 * 60 * 24 * 365));
+          return (b.total * (0.4 + 0.6 * decayB)) - (a.total * (0.4 + 0.6 * decayA));
+        })
+        .slice(0, 20);
+
+      const recent = [...gamesWithVerdicts]
+        .filter((g: any) => g.status !== 'upcoming')
+        .sort((a: any, b: any) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime())
+        .slice(0, 20);
+
+      const upcoming = gamesWithVerdicts
+        .filter((g: any) => g.status === 'upcoming')
+        .sort((a: any, b: any) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
+
+      // Build controversial games — creator verdict ≠ media verdict, both with enough reviews
+      const controversial: ControversialGame[] = [];
+      for (const game of gamesWithVerdicts) {
+        const cData = creatorMap[game.id];
+        const mData = mediaMap[game.id];
+        if (!cData || cData.total < 3) continue;
+        if (!mData || mData.total < 1) continue;
+        const cv = getVerdict(cData);
+        const mv = getVerdict(mData);
+        if (!cv || !mv) continue;
+        if (cv.verdict === mv.verdict) continue;
+        controversial.push({
+          ...game,
+          creatorVerdict: cv.verdict,
+          mediaVerdict: mv.verdict,
+          creatorBuy: cv.buy,
+          mediaBuy: mv.buy,
+        });
+      }
+      // Sort by how different the verdicts are (most dramatic first)
+      controversial.sort((a, b) => Math.abs(b.creatorBuy - b.mediaBuy) - Math.abs(a.creatorBuy - a.mediaBuy));
 
       setFeaturedGames(featured);
       setTrendingGames(trending);
       setRecentGames(recent);
       setUpcomingGames(upcoming);
+      setControversialGames(controversial.slice(0, 15));
       setAllGames(gamesWithVerdicts);
       setLoading(false);
     }
@@ -489,8 +586,6 @@ const trending = [...gamesWithVerdicts]
       {/* ── NAV ── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.95)", backdropFilter: "blur(12px)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 16px" }}>
-
-          {/* Logo */}
           <a href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ display: "flex", gap: 5 }}>
@@ -501,76 +596,30 @@ const trending = [...gamesWithVerdicts]
               <span style={{ color: "white", fontWeight: "bold", letterSpacing: "0.15em", fontSize: 16 }}>BUYWAITSKIP</span>
             </div>
           </a>
-
-          {/* Desktop nav links */}
           <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 32 }}>
-            <a href="/trending" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
-              onMouseEnter={e => e.currentTarget.style.color = "white"}
-              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
-            >Trending</a>
-            <a href="/new-releases" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
-              onMouseEnter={e => e.currentTarget.style.color = "white"}
-              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
-            >New Releases</a>
-            <a href="/creators" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
-              onMouseEnter={e => e.currentTarget.style.color = "white"}
-              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
-            >Creators</a>
-            <a href="/games" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }}
-              onMouseEnter={e => e.currentTarget.style.color = "white"}
-              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}
-            >All Games</a>
+            <a href="/trending" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }} onMouseEnter={e => e.currentTarget.style.color = "white"} onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}>Trending</a>
+            <a href="/new-releases" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }} onMouseEnter={e => e.currentTarget.style.color = "white"} onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}>New Releases</a>
+            <a href="/creators" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }} onMouseEnter={e => e.currentTarget.style.color = "white"} onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}>Creators</a>
+            <a href="/games" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: 500, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em" }} onMouseEnter={e => e.currentTarget.style.color = "white"} onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.8)"}>All Games</a>
           </div>
-
-          {/* Desktop search */}
           <div style={{ display: isMobile ? "none" : "block", flex: 1, maxWidth: 300, position: "relative" }}>
-            <input
-              type="search"
-              placeholder="Search games & creators..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onFocus={() => setSearchOpen(true)}
-              onBlur={() => setTimeout(() => setSearchOpen(false), 300)}
-              style={{ width: "100%", borderRadius: 999, padding: "8px 16px", fontSize: 14, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", outline: "none", boxSizing: "border-box" }}
-            />
+            <input type="search" placeholder="Search games & creators..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onFocus={() => setSearchOpen(true)} onBlur={() => setTimeout(() => setSearchOpen(false), 300)} style={{ width: "100%", borderRadius: 999, padding: "8px 16px", fontSize: 14, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", outline: "none", boxSizing: "border-box" }} />
             <SearchDropdown />
           </div>
-
-          {/* Hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            style={{ display: isMobile ? "flex" : "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 8 }}
-          >
+          <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: isMobile ? "flex" : "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 8 }}>
             <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(45deg) translate(2px, 3px)" : "none" }} />
             <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "opacity 0.2s", opacity: menuOpen ? 0 : 1 }} />
             <span style={{ display: "block", width: 22, height: 2, backgroundColor: "white", borderRadius: 2, transition: "transform 0.2s", transformOrigin: "center", transform: menuOpen ? "rotate(-45deg) translate(2px, -3px)" : "none" }} />
           </button>
         </div>
-
-        {/* Mobile dropdown */}
         {menuOpen && isMobile && (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(10,10,18,0.98)", padding: "16px" }}>
             <div style={{ position: "relative", marginBottom: 16 }}>
-              <input
-                type="search"
-                placeholder="Search games & creators..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchOpen(true)}
-                onBlur={() => setTimeout(() => setSearchOpen(false), 300)}
-                style={{ width: "100%", borderRadius: 999, padding: "10px 16px", fontSize: 14, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", outline: "none", boxSizing: "border-box" }}
-              />
+              <input type="search" placeholder="Search games & creators..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onFocus={() => setSearchOpen(true)} onBlur={() => setTimeout(() => setSearchOpen(false), 300)} style={{ width: "100%", borderRadius: 999, padding: "10px 16px", fontSize: 14, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", outline: "none", boxSizing: "border-box" }} />
               <SearchDropdown isMobileMenu />
             </div>
-            {[
-              { label: "Trending", href: "/trending" },
-              { label: "New Releases", href: "/new-releases" },
-              { label: "Creators", href: "/creators" },
-              { label: "All Games", href: "/games" },
-            ].map(link => (
-              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}
-                style={{ display: "block", color: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", padding: "12px 8px", textDecoration: "none", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-              >{link.label}</a>
+            {[{ label: "Trending", href: "/trending" }, { label: "New Releases", href: "/new-releases" }, { label: "Creators", href: "/creators" }, { label: "All Games", href: "/games" }].map(link => (
+              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} style={{ display: "block", color: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", padding: "12px 8px", textDecoration: "none", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>{link.label}</a>
             ))}
           </div>
         )}
@@ -602,12 +651,8 @@ const trending = [...gamesWithVerdicts]
         <div className="why-section" style={{ maxWidth: "1152px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 40 }}>
           <div style={{ maxWidth: 600 }}>
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 12 }}>Why BuyWaitSkip?</p>
-            <h2 className="why-heading" style={{ color: "white", fontSize: 42, fontWeight: "bold", lineHeight: 1.2, marginBottom: 20 }}>
-              We don't tell you<br />what to think.
-            </h2>
-            <h3 className="why-heading" style={{ color: GREEN, fontSize: 42, fontWeight: "bold", lineHeight: 1.2, marginBottom: 28 }}>
-              We show you what<br />everyone else thinks.
-            </h3>
+            <h2 className="why-heading" style={{ color: "white", fontSize: 42, fontWeight: "bold", lineHeight: 1.2, marginBottom: 20 }}>We don't tell you<br />what to think.</h2>
+            <h3 className="why-heading" style={{ color: GREEN, fontSize: 42, fontWeight: "bold", lineHeight: 1.2, marginBottom: 28 }}>We show you what<br />everyone else thinks.</h3>
             <p style={{ color: "white", fontSize: 15, lineHeight: 1.8 }}>
               Gaming reviews are scattered across hundreds of YouTube channels. We track the creators you already trust, analyze their honest takes, and give you one simple verdict — <strong style={{ color: GREEN }}>BUY</strong>, <strong style={{ color: GOLD }}>WAIT</strong>, or <strong style={{ color: RED }}>SKIP</strong> — so you never waste $70 on a game again.
             </p>
@@ -638,9 +683,7 @@ const trending = [...gamesWithVerdicts]
                 <span style={{ display: "inline-block", width: 3, height: 16, backgroundColor: GOLD, borderRadius: 2 }} />
                 Coming Soon
               </h2>
-              <span style={{ fontSize: 11, fontWeight: "bold", color: GOLD, letterSpacing: "0.15em", textTransform: "uppercase", background: "rgba(255,215,64,0.1)", border: "1px solid rgba(255,215,64,0.3)", padding: "4px 10px", borderRadius: 20 }}>
-                🕐 Reviews Incoming
-              </span>
+              <span style={{ fontSize: 11, fontWeight: "bold", color: GOLD, letterSpacing: "0.15em", textTransform: "uppercase", background: "rgba(255,215,64,0.1)", border: "1px solid rgba(255,215,64,0.3)", padding: "4px 10px", borderRadius: 20 }}>🕐 Reviews Incoming</span>
             </div>
             <div style={{ position: "relative" }}>
               <button onClick={() => document.getElementById('upcoming-scroll')!.scrollBy({ left: -400, behavior: 'smooth' })} style={{ position: "absolute", left: -16, top: "50%", transform: "translateY(-50%)", zIndex: 10, width: 40, height: 40, borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
@@ -659,14 +702,11 @@ const trending = [...gamesWithVerdicts]
                       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,10,18,0.95) 0%, rgba(10,10,18,0.4) 50%, transparent 100%)" }} />
                       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 16 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: "bold", letterSpacing: "0.1em", textTransform: "uppercase", color: GOLD, background: "rgba(255,215,64,0.12)", border: "1px solid rgba(255,215,64,0.3)", padding: "3px 8px", borderRadius: 4, marginBottom: 8 }}>
-                          <span style={{ width: 5, height: 5, borderRadius: "50%", background: GOLD, display: "inline-block" }} />
-                          Coming Soon
+                          <span style={{ width: 5, height: 5, borderRadius: "50%", background: GOLD, display: "inline-block" }} />Coming Soon
                         </div>
                         <p style={{ color: "white", fontSize: 15, fontWeight: "bold", lineHeight: 1.2, marginBottom: 4 }}>{game.title}</p>
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 6 }}>{game.genres?.join(" · ")}</p>
-                        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: "bold" }}>
-                          {game.release_date ? new Date(game.release_date).getFullYear() : "TBA"}
-                        </p>
+                        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: "bold" }}>{game.release_date ? new Date(game.release_date).getFullYear() : "TBA"}</p>
                       </div>
                     </div>
                   </a>
@@ -706,40 +746,39 @@ const trending = [...gamesWithVerdicts]
         </div>
       </section>
 
+      {/* ── MOST CONTROVERSIAL ── */}
+      {!loading && controversialGames.length > 0 && (
+        <section className="px-6 py-10" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(135deg, rgba(255,215,64,0.04) 0%, rgba(10,10,18,0) 60%)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+            <span style={{ fontSize: 20 }}>⚡</span>
+            <h2 className="text-2xl font-bold text-white uppercase tracking-wider" style={{ margin: 0 }}>Critics vs Gamers</h2>
+          </div>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginBottom: 24 }}>Games where creators and media can't agree — the most controversial titles right now.</p>
+          <div style={{ position: "relative" }}>
+            <button onClick={() => document.getElementById('controversial-scroll')!.scrollBy({ left: -400, behavior: 'smooth' })} style={{ position: "absolute", left: -16, top: "50%", transform: "translateY(-50%)", zIndex: 10, width: 40, height: 40, borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+            <div id="controversial-scroll" className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+              {controversialGames.map((game, i) => (
+                <ControversialCard key={i} game={game} />
+              ))}
+            </div>
+            <button onClick={() => document.getElementById('controversial-scroll')!.scrollBy({ left: 400, behavior: 'smooth' })} style={{ position: "absolute", right: -16, top: "50%", transform: "translateY(-50%)", zIndex: 10, width: 40, height: 40, borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
+          </div>
+        </section>
+      )}
+
       {!loading && <GenreSection allGames={allGames} />}
 
       {/* ── GLOBAL MOBILE STYLES ── */}
       <style>{`
         @media (max-width: 767px) {
-          .why-section {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 28px !important;
-          }
-          .why-heading {
-            font-size: 26px !important;
-          }
-          .stats-row {
-            width: 100% !important;
-            justify-content: space-between !important;
-          }
-          .stats-row > div {
-            flex: 1 !important;
-            padding: 14px 8px !important;
-          }
-          .stats-row > div p:first-child {
-            font-size: 24px !important;
-          }
-          .stats-row > div p:last-child {
-            font-size: 9px !important;
-          }
-          .genre-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 12px !important;
-          }
-          .genre-card {
-            height: 160px !important;
-          }
+          .why-section { flex-direction: column !important; align-items: flex-start !important; gap: 28px !important; }
+          .why-heading { font-size: 26px !important; }
+          .stats-row { width: 100% !important; justify-content: space-between !important; }
+          .stats-row > div { flex: 1 !important; padding: 14px 8px !important; }
+          .stats-row > div p:first-child { font-size: 24px !important; }
+          .stats-row > div p:last-child { font-size: 9px !important; }
+          .genre-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+          .genre-card { height: 160px !important; }
         }
       `}</style>
     </div>
