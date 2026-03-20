@@ -11,6 +11,9 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   title: "BuyWaitSkip - Gaming Review Aggregator",
   description: "See what the gaming community says: BUY, WAIT, or SKIP.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
