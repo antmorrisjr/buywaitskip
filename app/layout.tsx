@@ -9,7 +9,7 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: "BuyWaitSkip - Gaming Review Aggregator",
+  title: "BuyWaitSkip - Real Gamers. Real Verdicts. BUY, WAIT, or SKIP?",
   description: "See what the gaming community says: BUY, WAIT, or SKIP.",
   icons: {
     icon: "/favicon.svg",
