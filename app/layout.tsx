@@ -10,9 +10,23 @@ const oswald = Oswald({
 
 export const metadata: Metadata = {
   title: "BuyWaitSkip - Real Gamers. Real Verdicts. BUY, WAIT, or SKIP?",
-  description: "See what the gaming community says: BUY, WAIT, or SKIP.",
+  description: "Creator-only verdicts on every major game. Never waste $70 again.",
   icons: {
     icon: "/favicon.svg",
+  },
+  openGraph: {
+    title: "BuyWaitSkip - Real Gamers. Real Verdicts.",
+    description: "Creator-only verdicts on every major game. Never waste $70 again.",
+    url: "https://www.buywaitskip.com",
+    siteName: "BuyWaitSkip",
+    images: [
+      {
+        url: "https://www.buywaitskip.com/og-image.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: "website",
   },
 };
 
