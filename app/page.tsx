@@ -65,12 +65,13 @@ const steamHeroImages: Record<string, string> = {
   "street-fighter-6": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/library_hero.jpg",
   "suicide-squad-kill-the-justice-league": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/315210/library_hero.jpg",
   "tekken-8": "https://static.bandainamcoent.eu/high/tekken/tekken-8/00-page-setup/TEKKEN8_Header_mobile_2.jpg",
-  "crimson-desert": "https://images.igdb.com/igdb/image/upload/t_cover_big/coaqai.webp",
+  "crimson-desert": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3321460/d76689d0bd0a77b863a64b08760b8dd1c5b50081/capsule_616x353.jpg?t=1773663216 ",
   "forza-horizon-6": "https://images.igdb.com/igdb/image/upload/t_cover_big/cobc5n.webp",
   "phantom-blade-zero": "https://images.igdb.com/igdb/image/upload/t_cover_big/cob64v.webp",
   "tides-of-annihilation": "https://images.igdb.com/igdb/image/upload/t_cover_big/coaveg.webp",
   "marvel-tokon-fighting-souls": "https://images.igdb.com/igdb/image/upload/t_cover_big/co9wwj.webp",
   "marathon": "https://media.overclock3d.net/2025/04/Bungie-Marathon.jpg",
+  
 };
 
 const tickerVerdicts = [
