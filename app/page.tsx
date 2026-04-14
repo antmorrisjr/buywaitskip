@@ -71,6 +71,7 @@ const steamHeroImages: Record<string, string> = {
   "tides-of-annihilation": "https://images.igdb.com/igdb/image/upload/t_cover_big/coaveg.webp",
   "marvel-tokon-fighting-souls": "https://images.igdb.com/igdb/image/upload/t_cover_big/co9wwj.webp",
   "marathon": "https://media.overclock3d.net/2025/04/Bungie-Marathon.jpg",
+  "pragmata": "https://images7.alphacoders.com/140/thumb-1920-1403930.jpg",
   
 };
 
