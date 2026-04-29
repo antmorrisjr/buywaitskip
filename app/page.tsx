@@ -72,6 +72,8 @@ const steamHeroImages: Record<string, string> = {
   "marvel-tokon-fighting-souls": "https://images.igdb.com/igdb/image/upload/t_cover_big/co9wwj.webp",
   "marathon": "https://media.overclock3d.net/2025/04/Bungie-Marathon.jpg",
   "pragmata": "https://images7.alphacoders.com/140/thumb-1920-1403930.jpg",
+  "mouse-pi-for-hire": "https://assets.nintendo.com/image/upload/ar_16:9,b_auto:border,c_lpad/b_white/f_auto/q_auto/dpr_1.5/c_scale,w_1000/store/software/switch2/70010000101091/7277fab8f6588c4b4ed3ddbca23ba16ccbe7aaf5b2d82c371d95f86628d9df15",
+"tomodachi-life-living-the-dream": "https://assets.nintendo.eu/image/private/f_auto/q_auto/v1769700953/gtp9mald66w6kcbtxi6z.jpg",
   
 };
 
