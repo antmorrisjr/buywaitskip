@@ -74,6 +74,7 @@ const steamHeroImages: Record<string, string> = {
   "pragmata": "https://images7.alphacoders.com/140/thumb-1920-1403930.jpg",
   "mouse-pi-for-hire": "https://assets.nintendo.com/image/upload/ar_16:9,b_auto:border,c_lpad/b_white/f_auto/q_auto/dpr_1.5/c_scale,w_1000/store/software/switch2/70010000101091/7277fab8f6588c4b4ed3ddbca23ba16ccbe7aaf5b2d82c371d95f86628d9df15",
 "tomodachi-life-living-the-dream": "https://assets.nintendo.eu/image/private/f_auto/q_auto/v1769700953/gtp9mald66w6kcbtxi6z.jpg",
+"saros": "https://www.rogerebert.com/wp-content/uploads/2026/04/SAROS_KEYART_HORIZONTAL_logo-jpg.webp",
   
 };
 
